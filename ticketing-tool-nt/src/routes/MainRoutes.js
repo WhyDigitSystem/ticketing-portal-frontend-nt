@@ -12,7 +12,6 @@ import AllEmployees from '../components/Employees/AllEmployees';
 import UpdateEmployee from '../components/Employees/UpdateEmployee';
 import AllCustomer from '../components/Customers/AllCustomer';
 import UpdateCustomer from '../components/Customers/UpdateCustomer';
-import SettingsDashboard from '../components/settings/SettingsDashboard';
 import ProfileSettings from '../components/settings/Profile';
 import CriticalTickets from '../components/Tickets/CriticalTickets';
 
@@ -123,16 +122,6 @@ const MainRoutes = {
             element: (
                 <ProtectedRoute allowedRoles={["admin"]}>
                     <UpdateCustomer />
-                </ProtectedRoute>
-            )
-        },
-
-        // ---------- SETTINGS ----------
-        {
-            path: '/menu/settings',
-            element: (
-                <ProtectedRoute allowedRoles={["admin"]}>
-                    <SettingsDashboard />
                 </ProtectedRoute>
             )
         },

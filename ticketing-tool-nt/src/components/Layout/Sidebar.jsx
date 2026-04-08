@@ -51,14 +51,6 @@ const Sidebar = () => {
       bgColor: "bg-purple-100 dark:bg-purple-900/30",
       roles: ["admin"],
     },
-    {
-      name: "Settings",
-      href: "/menu/settings",
-      icon: Settings2,
-      color: "text-gray-600",
-      bgColor: "bg-gray-100 dark:bg-gray-900/30",
-      roles: ["admin"],
-    },
   ];
 
   // filter based on role

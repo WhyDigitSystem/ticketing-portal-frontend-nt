@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Eye,
   ArrowLeft,
   Users,
   ChevronUp,
@@ -12,8 +11,18 @@ import { useNavigate } from "react-router-dom";
 const AllEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
+
+  //  Default sort by DOJ
+  const [sortConfig, setSortConfig] = useState({
+    key: "doj",
+    direction: "desc",
+  });
+
   const [hoveredRow, setHoveredRow] = useState(null);
+
+  //  Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const navigate = useNavigate();
 
@@ -24,7 +33,7 @@ const AllEmployees = () => {
         const empList = await employeeAPI.getAllEmployees();
         setEmployees(empList);
       } catch (error) {
-        console.error("Failed to fetch employees:", error);
+        console.error(error);
         setEmployees([]);
       } finally {
         setLoading(false);
@@ -33,6 +42,7 @@ const AllEmployees = () => {
     fetchEmployees();
   }, []);
 
+  /** Sorting */
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -43,6 +53,7 @@ const AllEmployees = () => {
 
   const sortedEmployees = useMemo(() => {
     if (!sortConfig.key) return employees;
+
     const sorted = [...employees].sort((a, b) => {
       const aValue = a[sortConfig.key] ?? "";
       const bValue = b[sortConfig.key] ?? "";
@@ -56,9 +67,21 @@ const AllEmployees = () => {
       return (aValue || 0) - (bValue || 0);
     });
 
-    if (sortConfig.direction === "desc") sorted.reverse();
-    return sorted;
+    return sortConfig.direction === "desc" ? sorted.reverse() : sorted;
   }, [employees, sortConfig]);
+
+  //  Reset page on sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortConfig]);
+
+  //  Pagination slice
+  const paginatedEmployees = useMemo(() => {
+    const start = (currentPage - 1) * recordsPerPage;
+    return sortedEmployees.slice(start, start + recordsPerPage);
+  }, [sortedEmployees, currentPage]);
+
+  const totalPages = Math.ceil(sortedEmployees.length / recordsPerPage);
 
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
@@ -69,38 +92,31 @@ const AllEmployees = () => {
     );
   };
 
-  
-
   if (loading) {
-    return <p className="text-center mt-10">Loading employees...</p>;
+    return <p className="text-center mt-10 animate-fadeIn">Loading employees...</p>;
   }
 
   return (
     <div className="animate-fadeIn px-6 py-6">
-      {/* Back Button */}
+
+      {/* Back */}
       <button
         onClick={() => navigate("/menu/employee")}
-        className="group inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-3 transition-all duration-200"
+        className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        <span className="text-xs font-medium">
-          Back to Employee Management
-        </span>
+        <ArrowLeft size={14} />
+        <span className="text-xs">Back</span>
       </button>
 
       {/* Header */}
-      <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-to-tr from-green-500/10 to-teal-500/10 rounded-full blur-2xl"></div>
-
-        <div className="relative z-10 flex items-center justify-between flex-wrap gap-3">
+      <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
               <Users className="h-6 w-6 text-white" />
             </div>
-
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl font-bold dark:text-white">
                 All Employees
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -109,9 +125,9 @@ const AllEmployees = () => {
             </div>
           </div>
 
-          <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
             <p className="text-[10px] text-gray-500 uppercase">Total</p>
-            <p className="text-sm font-bold text-gray-900 dark:text-white">
+            <p className="text-sm font-bold dark:text-white">
               {employees.length}
             </p>
           </div>
@@ -119,29 +135,27 @@ const AllEmployees = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <table className="min-w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
+        <table className="min-w-full divide-y dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              
-
               {[
-                { key: "id", label: "ID", width: "w-[80px]" },
-                { key: "name", label: "Name", width: "w-[200px]" },
-                { key: "code", label: "Code", width: "w-[100px]" },
-                { key: "department", label: "Department", width: "w-[140px]" },
-                { key: "designation", label: "Designation", width: "w-[140px]" },
-                { key: "branch", label: "Branch", width: "w-[120px]" },
-                { key: "email", label: "Email", width: "w-[180px]" },
-                { key: "doj", label: "Joining Date", width: "w-[120px]" },
+                { key: "id", label: "ID" },
+                { key: "name", label: "Name" },
+                { key: "code", label: "Code" },
+                { key: "department", label: "Department" },
+                { key: "designation", label: "Designation" },
+                { key: "branch", label: "Branch" },
+                { key: "email", label: "Email" },
+                { key: "doj", label: "Joining Date" },
               ].map((col) => (
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className={`px-3 py-2 text-xs cursor-pointer select-none ${col.width}`}
+                  className="px-3 py-2 text-xs text-center cursor-pointer"
                 >
-                  <div className="flex items-center gap-1">
-                    <span>{col.label}</span>
+                  <div className="flex justify-center items-center gap-1">
+                    {col.label}
                     {renderSortIcon(col.key)}
                   </div>
                 </th>
@@ -149,35 +163,61 @@ const AllEmployees = () => {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedEmployees.map((emp, index) => (
+          <tbody className="divide-y dark:divide-gray-700">
+            {paginatedEmployees.map((emp) => (
               <tr
                 key={emp.id}
                 onMouseEnter={() => setHoveredRow(emp.id)}
                 onMouseLeave={() => setHoveredRow(null)}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition animate-slideUp ${
+                className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
                   hoveredRow === emp.id
-                    ? "border-l-4 border-blue-500 dark:border-blue-400"
+                    ? "border-l-4 border-blue-500"
                     : ""
                 }`}
-                style={{ animationDelay: `${index * 80}ms` }}
               >
-                
-
-                <td className="px-3 py-2 whitespace-nowrap">{emp.id}</td>
-                <td className="px-3 py-2 max-w-[180px] truncate">{emp.name}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.code}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.department}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.designation}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.branch}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{emp.email}</td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  {emp.doj ? new Date(emp.doj).toLocaleDateString() : "-"}
+                <td className="px-3 py-2 text-center">{emp.id}</td>
+                <td className="px-3 py-2 text-center">{emp.name}</td>
+                <td className="px-3 py-2 text-center">{emp.code}</td>
+                <td className="px-3 py-2 text-center">{emp.department}</td>
+                <td className="px-3 py-2 text-center">{emp.designation}</td>
+                <td className="px-3 py-2 text-center">{emp.branch}</td>
+                <td className="px-3 py-2 text-center">{emp.email}</td>
+                <td className="px-3 py-2 text-center">
+                  {emp.doj
+                    ? new Date(emp.doj).toLocaleDateString()
+                    : "-"}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/*  Pagination */}
+      <div className="flex justify-between items-center mt-4 animate-slideUp">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <button
+            onClick={() =>
+              setCurrentPage((p) => Math.min(p + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -194,7 +234,7 @@ const styles = `
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
-.animate-slideUp { animation: slideUp 0.3s ease-out forwards; opacity: 0; }
+.animate-slideUp { animation: slideUp 0.4s ease-out forwards; opacity: 0; }
 `;
 
 if (typeof document !== "undefined") {
@@ -203,4 +243,4 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-export default AllEmployees;  
+export default AllEmployees;

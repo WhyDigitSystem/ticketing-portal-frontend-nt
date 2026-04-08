@@ -1,22 +1,30 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check ,FileExclamationPoint } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { employeeAPI } from "../../api/employeeAPI";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import TicketPopup from "./TicketPopup"; // import the popup component
+import TicketPopup from "./TicketPopup";
 
 const CriticalTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "docDate",
+    direction: "desc",
+  });
+
   const [employees, setEmployees] = useState([]);
   const [assigning, setAssigning] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [hoveredRow, setHoveredRow] = useState(null);
 
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [isPopupOpen, setIsPopupOpen] = useState(false); // popup state
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
@@ -29,26 +37,24 @@ const CriticalTickets = () => {
         const empList = await employeeAPI.getAllEmployees();
         setEmployees(empList);
       } catch (err) {
-        console.error("Failed to fetch employees:", err);
+        console.error(err);
         setEmployees([]);
       }
     };
     fetchEmployees();
   }, []);
 
-  /** Fetch Tickets and Filter Critical Tickets */
+  /** Fetch Tickets */
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
         const allTickets = await ticketAPI.getAllTickets();
 
-        // Only critical tickets
         let criticalTickets = allTickets.filter(
           (t) => (t.priority || "").toLowerCase() === "critical"
         );
 
-        // Map assignedToEmp to email
         criticalTickets = criticalTickets.map((t) => {
           if (!t.assignedToEmp) return t;
           const emp = employees.find(
@@ -57,7 +63,6 @@ const CriticalTickets = () => {
           return { ...t, assignedToEmp: emp?.email || t.assignedToEmp };
         });
 
-        // Employee sees only assigned tickets
         if (role === "employee") {
           criticalTickets = criticalTickets.filter(
             (t) => t.assignedToEmp === user.email
@@ -66,23 +71,28 @@ const CriticalTickets = () => {
 
         setTickets(criticalTickets);
       } catch (err) {
-        console.error("Failed to fetch tickets:", err);
+        console.error(err);
         setTickets([]);
       } finally {
         setLoading(false);
       }
     };
+
     if (user && employees.length) fetchTickets();
   }, [role, user, employees]);
 
   /** Sorting */
   const handleSort = (key) => {
-    const direction = sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
+    const direction =
+      sortConfig.key === key && sortConfig.direction === "asc"
+        ? "desc"
+        : "asc";
     setSortConfig({ key, direction });
   };
 
   const sortedTickets = useMemo(() => {
     if (!sortConfig.key) return tickets;
+
     const sorted = [...tickets].sort((a, b) => {
       const aVal = a[sortConfig.key] ?? "";
       const bVal = b[sortConfig.key] ?? "";
@@ -94,20 +104,39 @@ const CriticalTickets = () => {
       if (typeof aVal === "string") return aVal.localeCompare(bVal);
       return (aVal || 0) - (bVal || 0);
     });
+
     return sortConfig.direction === "desc" ? sorted.reverse() : sorted;
   }, [tickets, sortConfig]);
 
-  const renderSortIcon = (key) =>
-    sortConfig.key !== key ? null : sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortConfig]);
 
-  /** Assign Ticket */
+  const paginatedTickets = useMemo(() => {
+    const start = (currentPage - 1) * recordsPerPage;
+    return sortedTickets.slice(start, start + recordsPerPage);
+  }, [sortedTickets, currentPage]);
+
+  const totalPages = Math.ceil(sortedTickets.length / recordsPerPage);
+
+  const renderSortIcon = (key) =>
+    sortConfig.key !== key ? null : sortConfig.direction === "asc" ? (
+      <ChevronUp size={14} />
+    ) : (
+      <ChevronDown size={14} />
+    );
+
+  /** Assign */
   const handleAssignChange = async (ticketId, employeeEmail) => {
     try {
       setAssigning((prev) => ({ ...prev, [ticketId]: true }));
 
-      // Optimistic UI update
       setTickets((prev) =>
-        prev.map((t) => (t.id === ticketId ? { ...t, assignedToEmp: employeeEmail } : t))
+        prev.map((t) =>
+          t.id === ticketId
+            ? { ...t, assignedToEmp: employeeEmail }
+            : t
+        )
       );
 
       const response = await ticketAPI.assignTicket({
@@ -118,16 +147,16 @@ const CriticalTickets = () => {
       });
 
       if (response.success) {
-        const empName = employees.find((e) => e.email === employeeEmail)?.name || employeeEmail;
+        const empName =
+          employees.find((e) => e.email === employeeEmail)?.name ||
+          employeeEmail;
         setSuccessMessage(`Ticket ${ticketId} assigned to ${empName}`);
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        alert("Failed to assign ticket");
         revertAssign(ticketId);
       }
     } catch (err) {
       console.error(err);
-      alert("Error assigning ticket");
       revertAssign(ticketId);
     } finally {
       setAssigning((prev) => ({ ...prev, [ticketId]: false }));
@@ -136,52 +165,83 @@ const CriticalTickets = () => {
 
   const revertAssign = (ticketId) => {
     setTickets((prev) =>
-      prev.map((t) => (t.id === ticketId ? { ...t, assignedToEmp: "" } : t))
+      prev.map((t) =>
+        t.id === ticketId ? { ...t, assignedToEmp: "" } : t
+      )
     );
   };
 
-  /** Priority Styling */
   const getPriorityStyle = (priority) => {
     switch ((priority || "").toLowerCase()) {
       case "low":
       case "normal":
-        return "bg-green-100 text-green-700";
+        return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300";
       case "medium":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300";
       case "high":
-        return "bg-orange-100 text-orange-700";
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
       case "critical":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading tickets...</p>;
+  if (loading)
+    return <p className="text-center mt-10 animate-fadeIn">Loading tickets...</p>;
 
   return (
     <div className="animate-fadeIn px-6 py-6">
+
+      {/* Success Toast */}
       {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-5 rounded shadow-md flex items-center gap-2 animate-fadeIn z-50">
-          <Check className="w-6 h-6 bg-white text-green-500 rounded-full p-1" />
-          <span className="font-medium">{successMessage}</span>
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow flex items-center gap-2 z-50 animate-fadeIn">
+          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
+          {successMessage}
         </div>
       )}
 
       <button
         onClick={() => navigate("/menu/ticket")}
-        className="group inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-3 transition-all duration-200"
+        className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3 animate-slideUp"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        <span className="text-xs font-medium">Back to Ticket Management</span>
+        <ArrowLeft size={14} />
+        <span className="text-xs">Back</span>
       </button>
+      
+      {/* Header */}
+<div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-pink-600">
+        <FileExclamationPoint className="h-6 w-6 text-white" />
+      </div>
+      <div>
+        <h1 className="text-xl font-bold dark:text-white">
+          Critical Tickets
+        </h1>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          View and manage all critical tickets
+        </p>
+      </div>
+    </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <table className="min-w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0 z-10">
+    <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+      <p className="text-[10px] text-gray-500 uppercase">Total</p>
+      <p className="text-sm font-bold dark:text-white">
+        {tickets.length}
+      </p>
+    </div>
+  </div>
+</div>
+
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
+        <table className="min-w-full divide-y dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-3 py-2 text-xs w-[120px]">Actions</th>
+              <th className="px-3 py-2 text-xs text-center">Actions</th>
+
               {[
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
@@ -195,10 +255,10 @@ const CriticalTickets = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs cursor-pointer select-none"
+                  className="px-3 py-2 text-xs text-center cursor-pointer"
                 >
-                  <div className="flex items-center gap-1">
-                    <span>{col.label}</span>
+                  <div className="flex justify-center items-center gap-1">
+                    {col.label}
                     {renderSortIcon(col.key)}
                   </div>
                 </th>
@@ -206,49 +266,61 @@ const CriticalTickets = () => {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedTickets.map((ticket, index) => {
-              const assignedEmployee = employees.find((e) => e.email === ticket.assignedToEmp);
+          <tbody className="divide-y dark:divide-gray-700">
+            {paginatedTickets.map((ticket) => {
+              const assignedEmployee = employees.find(
+                (e) => e.email === ticket.assignedToEmp
+              );
+
               return (
                 <tr
                   key={ticket.id}
                   onMouseEnter={() => setHoveredRow(ticket.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition animate-slideUp ${
-                    hoveredRow === ticket.id ? "border-l-4 border-red-500 dark:border-red-400" : ""
-                  }`}
-                  style={{ animationDelay: `${index * 80}ms` }}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                    hoveredRow === ticket.id
+                      ? "border-l-4 border-red-500"
+                      : ""
+                  } animate-slideUp`}
                 >
-                  <td className="px-3 py-2 flex gap-2">
+                  <td className="px-3 py-2 text-center">
                     <button
                       onClick={() => {
                         setSelectedTicket(ticket);
-                        setIsPopupOpen(true); // open popup on click
+                        setIsPopupOpen(true);
                       }}
-                      className="p-2 rounded-full bg-blue-50 hover:bg-blue-100"
+                      className="p-2 bg-blue-50 hover:bg-blue-100 rounded-full"
                     >
                       <Eye size={16} className="text-blue-500" />
                     </button>
                   </td>
 
-                  <td className="px-3 py-2">{ticket.id}</td>
-                  <td className="px-3 py-2 truncate">{ticket.title}</td>
-                  <td className="px-3 py-2">{ticket.client || "-"}</td>
-                  <td className="px-3 py-2">{ticket.status}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 text-center">{ticket.id}</td>
+                  <td className="px-3 py-2 text-center">{ticket.title}</td>
+                  <td className="px-3 py-2 text-center">
+                    {ticket.client || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-center">{ticket.status}</td>
+
+                  <td className="px-3 py-2 text-center">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${getPriorityStyle(ticket.priority)}`}
+                      className={`px-2 py-1 rounded-full text-xs ${getPriorityStyle(
+                        ticket.priority
+                      )}`}
                     >
                       {ticket.priority}
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+
+                  <td className="px-3 py-2 text-center">
                     {role === "admin" ? (
                       <select
                         value={ticket.assignedToEmp || ""}
-                        onChange={(e) => handleAssignChange(ticket.id, e.target.value)}
+                        onChange={(e) =>
+                          handleAssignChange(ticket.id, e.target.value)
+                        }
                         disabled={assigning[ticket.id]}
-                        className="border rounded px-2 py-1 text-sm dark:bg-gray-700 w-full"
+                        className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
                       >
                         <option value="">Unassigned</option>
                         {employees.map((emp) => (
@@ -258,13 +330,21 @@ const CriticalTickets = () => {
                         ))}
                       </select>
                     ) : (
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {assignedEmployee?.name || "Unassigned"}
-                      </span>
+                      assignedEmployee?.name || "Unassigned"
                     )}
                   </td>
-                  <td className="px-3 py-2">{ticket.docDate ? new Date(ticket.docDate).toLocaleDateString() : "-"}</td>
-                  <td className="px-3 py-2">{ticket.completedOn ? new Date(ticket.completedOn).toLocaleDateString() : "-"}</td>
+
+                  <td className="px-3 py-2 text-center">
+                    {ticket.docDate
+                      ? new Date(ticket.docDate).toLocaleDateString()
+                      : "-"}
+                  </td>
+
+                  <td className="px-3 py-2 text-center">
+                    {ticket.completedOn
+                      ? new Date(ticket.completedOn).toLocaleDateString()
+                      : "-"}
+                  </td>
                 </tr>
               );
             })}
@@ -272,7 +352,33 @@ const CriticalTickets = () => {
         </table>
       </div>
 
-      {/* Ticket Popup */}
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-4 animate-slideUp">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <button
+            onClick={() =>
+              setCurrentPage((p) => Math.min(p + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
       <TicketPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
@@ -281,5 +387,25 @@ const CriticalTickets = () => {
     </div>
   );
 };
+
+/* Animations */
+const styles = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+.animate-slideUp { animation: slideUp 0.4s ease-out forwards; opacity: 0; }
+`;
+
+if (typeof document !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
 
 export default CriticalTickets;

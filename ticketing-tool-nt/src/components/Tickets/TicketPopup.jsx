@@ -229,7 +229,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                     <option value="Rejected">Rejected</option>
                   </select>
                 </div>
-                <p><b>Client:</b> {ticketData.client || "-"}</p>
+                <p><b>customer:</b> {ticketData.customer || "-"}</p>
                 <p><b>Description:</b> {ticketData.description}</p>
                 <p><b>Priority:</b> {ticketData.priority}</p>
                 <p><b>Assigned To:</b> {ticketData.assignedToEmp || "-"}</p>

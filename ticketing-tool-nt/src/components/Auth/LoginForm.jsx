@@ -136,7 +136,7 @@ const AuthForm = () => {
             name: userVO.userName || "",
             email: values.email,
             organizationName: userVO.organizationName || "",
-            userId: userVO.userId,
+            userId: userVO.userId || "",
             token: userVO.token,
             type: userVO.type,
             orgId: userVO.orgId,
@@ -626,7 +626,7 @@ const AuthForm = () => {
                   >
                     Login
                   </button>
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => handleAuthToggle(true)}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${isSignup
@@ -635,7 +635,7 @@ const AuthForm = () => {
                       }`}
                   >
                     Sign Up
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}
