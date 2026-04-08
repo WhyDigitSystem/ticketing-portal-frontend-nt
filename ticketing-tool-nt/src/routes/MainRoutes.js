@@ -1,0 +1,152 @@
+// src/routes/MainRoutes.js
+import { lazy } from 'react';
+import MainLayout from '../components/Layout/Layout';
+import Loadable from '../components/UI/Loadable';
+import ProtectedRoute from './ProtectedRoutes';
+
+import MenuPage from '../menu-items/MenuPage';
+import AllTickets from '../components/Tickets/AllTickets';
+import NewTicket from '../components/Tickets/NewTicket';
+import NewEmployee from '../components/Employees/NewEmployee';
+import AllEmployees from '../components/Employees/AllEmployees';
+import UpdateEmployee from '../components/Employees/UpdateEmployee';
+import AllCustomer from '../components/Customers/AllCustomer';
+import UpdateCustomer from '../components/Customers/UpdateCustomer';
+import SettingsDashboard from '../components/settings/SettingsDashboard';
+import ProfileSettings from '../components/settings/Profile';
+import CriticalTickets from '../components/Tickets/CriticalTickets';
+
+const Dashboard = Loadable(lazy(() => import('../pages/Dashboard')));
+
+const MainRoutes = {
+    path: '/',
+    element: (
+        <ProtectedRoute>
+            <MainLayout />
+        </ProtectedRoute>
+    ),
+    children: [
+        {
+            path: '',
+            element: (
+                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <Dashboard />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: 'dashboard',
+            element: (
+                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <Dashboard />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: 'menu/:menuName',
+            element: (
+                <ProtectedRoute
+                    allowedRoles={["admin", "employee"]}
+                    menuAccess={{
+                        admin: ["ticket", "employee", "customer", "settings"],
+                        employee: ["ticket"] // only this allowed
+                    }}
+                >
+                    <MenuPage />
+                </ProtectedRoute>
+            )
+        },
+
+        // ---------- TICKETS ----------
+        {
+            path: '/alltickets',
+            element: (
+                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <AllTickets />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/newticket',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <NewTicket />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/criticaltickets',
+            element: (
+                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <CriticalTickets />
+                </ProtectedRoute>
+            )
+        },
+
+        // ---------- EMPLOYEE (ADMIN ONLY) ----------
+        {
+            path: '/newemployee',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <NewEmployee />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/Allemployees',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <AllEmployees />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/editemployee',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <UpdateEmployee />
+                </ProtectedRoute>
+            )
+        },
+
+        // ---------- CUSTOMER (ADMIN ONLY) ----------
+        {
+            path: '/allCustomers',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <AllCustomer />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: '/editCustomer',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <UpdateCustomer />
+                </ProtectedRoute>
+            )
+        },
+
+        // ---------- SETTINGS ----------
+        {
+            path: '/menu/settings',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <SettingsDashboard />
+                </ProtectedRoute>
+            )
+        },
+
+        // ---------- PROFILE (ALL USERS) ----------
+        {
+            path: '/myprofile',
+            element: (
+                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                    <ProfileSettings />
+                </ProtectedRoute>
+            )
+        }
+    ]
+};
+
+export default MainRoutes;
