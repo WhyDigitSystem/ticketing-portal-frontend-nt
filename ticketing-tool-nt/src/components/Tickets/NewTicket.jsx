@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Save, X, Ticket, Check } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
+import { useSelector } from "react-redux";
 
 const NewTicket = () => {
   const [formData, setFormData] = useState({
@@ -13,10 +14,14 @@ const NewTicket = () => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const username = sessionStorage.getItem("username") || "User";
-  const email = sessionStorage.getItem("email") || "user@mail.com";
-  const client = sessionStorage.getItem("client") || "Client";
+  const user = useSelector((state) => state.auth.user);
 
+  const username = user?.name || "User";
+  const email = user?.email || "user@mail.com";
+  const client = user?.type || "Client"; // only if your backend provides this
+
+
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

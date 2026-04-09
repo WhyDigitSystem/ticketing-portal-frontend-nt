@@ -52,13 +52,21 @@ const AllTickets = () => {
           assignedToEmp: t.email || t.assignedToEmp || "",
         }));
         const visibleTickets =
-          role === "admin"
-            ? normalized
-            : normalized.filter(
-                (t) =>
-                  t.assignedToEmp === user.email ||
-                  t.assignedToEmp === user.name
-              );
+  role === "admin"
+    ? normalized
+    : role === "employee"
+    ? normalized.filter(
+        (t) =>
+          t.assignedToEmp === user.email ||
+          t.assignedToEmp === user.name
+      )
+    : role === "customer"
+    ? normalized.filter(
+        (t) =>
+          t.createdBy === user.email ||
+          t.createdBy === user.name
+      )
+    : [];
         setTickets(visibleTickets);
       } catch (err) {
         console.error(err);

@@ -152,6 +152,7 @@ const AuthForm = () => {
         localStorage.setItem('userType', userVO.type);
         localStorage.setItem('finYear', userVO.finYear);
         localStorage.setItem('LoginMessage', true);
+        
 
         // // Handle user type and role
         // const userType = response.data?.paramObjectsMap?.userVO?.userType;
@@ -221,7 +222,14 @@ const AuthForm = () => {
 
         // Navigate to dashboard
         setTimeout(() => {
-          navigate('/dashboard');
+          const role = userVO.type?.toLowerCase();
+
+          if (role === 'customer') {
+            navigate('/menu/ticket');
+          } else {
+            navigate('/dashboard');
+          }
+
           window.location.reload();
         }, 100);
 

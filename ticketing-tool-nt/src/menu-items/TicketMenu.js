@@ -15,14 +15,14 @@ const ticketMenu = {
       path: "/newticket",
       icon: PlusCircle,
       color: "green",
-      roles: ["admin"] // only admin can see
+      roles: ["admin","customer"] // only admin can see
     },
     {
       name: "All Tickets List",
       path: "/alltickets",
       icon: List,
       color: "blue",
-      roles: ["admin", "employee"] 
+      roles: ["admin", "employee","customer"] 
     }
   ]
 };

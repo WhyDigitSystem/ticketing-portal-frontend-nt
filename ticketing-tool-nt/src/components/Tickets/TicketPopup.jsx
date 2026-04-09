@@ -17,6 +17,14 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [editingComment, setEditingComment] = useState(null); // {id, text}
 
+
+  const user = useSelector((state) => state.auth.user);
+
+  const type = user?.type?.toLowerCase();
+  const isCustomer = type === "customer";
+
+
+
   useEffect(() => {
     if (isOpen && ticket?.id) {
       loadTicketDetails();
@@ -221,6 +229,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                   <select
                     value={status}
                     onChange={(e) => handleStatusChange(e.target.value)}
+                    disabled={isCustomer}
                     className="border border-gray-300 dark:border-gray-600 px-2 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="Inprogress">Inprogress</option>
@@ -271,7 +280,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                     {comments.map((c) => {
                       const name = getDisplayName(c.commentName);
                       const initial = name.charAt(0).toUpperCase();
-                      const canEditOrDelete =c.commentName?.toLowerCase() === currentUserEmail;
+                      const canEditOrDelete = c.commentName?.toLowerCase() === currentUserEmail;
 
                       return (
                         <div key={c.id} className="flex gap-3 items-start">
@@ -365,11 +374,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                   />
-                  <div className="flex justify-between items-center">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 dark:text-gray-300">
-                      <Upload size={16} /> Upload
-                      <input type="file" hidden onChange={(e) => setImage(e.target.files[0])} />
-                    </label>
+                  <div className="flex justify-end items-center">
                     <button
                       onClick={handleAddOrUpdateComment}
                       className="bg-blue-500 text-white px-4 py-1 rounded flex items-center gap-1"

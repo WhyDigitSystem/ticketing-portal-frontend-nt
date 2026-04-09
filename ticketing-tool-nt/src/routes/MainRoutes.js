@@ -28,7 +28,7 @@ const MainRoutes = {
         {
             path: '',
             element: (
-                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                <ProtectedRoute allowedRoles={["admin", "employee",]}>
                     <Dashboard />
                 </ProtectedRoute>
             )
@@ -36,7 +36,7 @@ const MainRoutes = {
         {
             path: 'dashboard',
             element: (
-                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                <ProtectedRoute allowedRoles={["admin", "employee",]}>
                     <Dashboard />
                 </ProtectedRoute>
             )
@@ -45,10 +45,11 @@ const MainRoutes = {
             path: 'menu/:menuName',
             element: (
                 <ProtectedRoute
-                    allowedRoles={["admin", "employee"]}
+                    allowedRoles={["admin", "employee","customer"]}
                     menuAccess={{
                         admin: ["ticket", "employee", "customer", "settings"],
-                        employee: ["ticket"] // only this allowed
+                        employee: ["ticket"],
+                        customer:["ticket"],// only this allowed
                     }}
                 >
                     <MenuPage />
@@ -60,7 +61,7 @@ const MainRoutes = {
         {
             path: '/alltickets',
             element: (
-                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                <ProtectedRoute allowedRoles={["admin", "employee","customer"]}>
                     <AllTickets />
                 </ProtectedRoute>
             )
@@ -68,7 +69,7 @@ const MainRoutes = {
         {
             path: '/newticket',
             element: (
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedRoles={["admin","customer"]}>
                     <NewTicket />
                 </ProtectedRoute>
             )
@@ -130,7 +131,7 @@ const MainRoutes = {
         {
             path: '/myprofile',
             element: (
-                <ProtectedRoute allowedRoles={["admin", "employee"]}>
+                <ProtectedRoute allowedRoles={["admin", "employee","customer"]}>
                     <ProfileSettings />
                 </ProtectedRoute>
             )

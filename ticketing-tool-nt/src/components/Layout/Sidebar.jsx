@@ -25,7 +25,7 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       color: "text-blue-500",
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
-      roles: ["admin", "employee"],
+      roles: ["admin", "employee",],
     },
     {
       name: "Ticket",
@@ -33,7 +33,7 @@ const Sidebar = () => {
       icon: Tag,
       color: "text-emerald-500",
       bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-      roles: ["admin", "employee"],
+      roles: ["admin", "employee","customer"],
     },
     {
       name: "Employee",
