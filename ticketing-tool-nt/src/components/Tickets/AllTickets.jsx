@@ -345,7 +345,7 @@ const AllTickets = () => {
                   <td className="px-3 py-2 text-left">{ticket.id}</td>
                   <td className="px-3 py-2 text-left">{ticket.title}</td>
                   <td className="px-3 py-2 text-left">
-                    {ticket.projectName || "-"}
+                    {ticket.application  || "-"}
                   </td>
                   <td className="px-3 py-2 text-left">
                     {ticket.customer || "-"}
