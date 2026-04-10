@@ -5,18 +5,22 @@ import {
   ChevronUp,
   ChevronDown,
   Check,
-  Tags
+  Tags,
 } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { employeeAPI } from "../../api/employeeAPI";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import TicketPopup from "./TicketPopup";
+import TicketFilters from "./TicketFilters";
 
 const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: "docDate", direction: "desc" });
+  const [sortConfig, setSortConfig] = useState({
+    key: "docDate",
+    direction: "desc",
+  });
   const [employees, setEmployees] = useState([]);
   const [assigning, setAssigning] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -29,6 +33,12 @@ const AllTickets = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
   const role = user?.type?.toLowerCase();
+
+  const [filters, setFilters] = useState({
+    application: "",
+    status: "",
+    assignedTo: "",
+  });
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -50,23 +60,23 @@ const AllTickets = () => {
         const normalized = allTickets.map((t) => ({
           ...t,
           assignedToEmp: t.email || t.assignedToEmp || "",
+          companyName: t.companyName || t.company || "", // added companyName
         }));
         const visibleTickets =
-  role === "admin"
-    ? normalized
-    : role === "employee"
-    ? normalized.filter(
-        (t) =>
-          t.assignedToEmp === user.email ||
-          t.assignedToEmp === user.name
-      )
-    : role === "customer"
-    ? normalized.filter(
-        (t) =>
-          t.createdBy === user.email ||
-          t.createdBy === user.name
-      )
-    : [];
+          role === "admin"
+            ? normalized
+            : role === "employee"
+              ? normalized.filter(
+                  (t) =>
+                    t.assignedToEmp === user.email ||
+                    t.assignedToEmp === user.name,
+                )
+              : role === "customer"
+                ? normalized.filter(
+                    (t) =>
+                      t.createdBy === user.email || t.createdBy === user.name,
+                  )
+                : [];
         setTickets(visibleTickets);
       } catch (err) {
         console.error(err);
@@ -86,19 +96,36 @@ const AllTickets = () => {
     setSortConfig({ key, direction });
   };
 
+  // filter
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      return (
+        (!filters.application || t.projectName === filters.application) &&
+        (!filters.status || t.status === filters.status) &&
+        (!filters.assignedTo || t.assignedToEmp === filters.assignedTo)
+      );
+    });
+  }, [tickets, filters]);
+
+  // sort
   const sortedTickets = useMemo(() => {
-    if (!sortConfig.key) return tickets;
-    const sorted = [...tickets].sort((a, b) => {
+    if (!sortConfig.key) return filteredTickets;
+
+    const sorted = [...filteredTickets].sort((a, b) => {
       const aValue = a[sortConfig.key] ?? "";
       const bValue = b[sortConfig.key] ?? "";
+
       const aDate = Date.parse(aValue);
       const bDate = Date.parse(bValue);
+
       if (!isNaN(aDate) && !isNaN(bDate)) return aDate - bDate;
       if (typeof aValue === "string") return aValue.localeCompare(bValue);
+
       return (aValue || 0) - (bValue || 0);
     });
+
     return sortConfig.direction === "desc" ? sorted.reverse() : sorted;
-  }, [tickets, sortConfig]);
+  }, [filteredTickets, sortConfig]);
 
   useEffect(() => setCurrentPage(1), [sortConfig]);
 
@@ -126,8 +153,8 @@ const AllTickets = () => {
 
     setTickets((prev) =>
       prev.map((t) =>
-        t.id === ticketId ? { ...t, assignedToEmp: employee.email } : t
-      )
+        t.id === ticketId ? { ...t, assignedToEmp: employee.email } : t,
+      ),
     );
 
     try {
@@ -155,9 +182,7 @@ const AllTickets = () => {
 
   const revertAssign = (ticketId) => {
     setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId ? { ...t, assignedToEmp: "" } : t
-      )
+      prev.map((t) => (t.id === ticketId ? { ...t, assignedToEmp: "" } : t)),
     );
   };
 
@@ -176,9 +201,37 @@ const AllTickets = () => {
         return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
     }
   };
+  const handleStatusChange = async (ticketId, newStatus) => {
+    const oldTickets = [...tickets];
+
+    // optimistic update
+    setTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t)),
+    );
+
+    try {
+      const res = await ticketAPI.changeTicketStatus({
+        id: ticketId,
+        status: newStatus,
+        empCode: user.email,
+      });
+
+      if (res.success) {
+        setSuccessMessage("Status updated successfully");
+        setTimeout(() => setSuccessMessage(""), 2500);
+      } else {
+        setTickets(oldTickets); // revert
+      }
+    } catch (err) {
+      console.error(err);
+      setTickets(oldTickets); // revert
+    }
+  };
 
   if (loading)
-    return <p className="text-center mt-10 animate-fadeIn">Loading tickets...</p>;
+    return (
+      <p className="text-center mt-10 animate-fadeIn">Loading tickets...</p>
+    );
 
   return (
     <div className="animate-fadeIn px-6 py-6">
@@ -189,12 +242,6 @@ const AllTickets = () => {
         </div>
       )}
 
-
-
-
-
-
-
       <button
         onClick={() => navigate("/menu/ticket")}
         className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3 animate-slideUp"
@@ -204,27 +251,41 @@ const AllTickets = () => {
       </button>
 
       {/* Header */}
-<div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
-        <Tags className="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <h1 className="text-xl font-bold dark:text-white">All Tickets</h1>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
-          View and manage all tickets
-        </p>
-      </div>
-    </div>
+      <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* LEFT SIDE */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+              <Tags className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold dark:text-white">All Tickets</h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                View and manage all tickets
+              </p>
+            </div>
+          </div>
 
-    <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
-      <p className="text-[10px] text-gray-500 uppercase">Total</p>
-      <p className="text-sm font-bold dark:text-white">{tickets.length}</p>
-    </div>
-  </div>
-</div>
-      
+          {/* RIGHT SIDE */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            {/* FILTER COMPONENT */}
+            <TicketFilters
+              filters={filters}
+              setFilters={setFilters}
+              employees={employees}
+              tickets={tickets}
+            />
+
+            {/* TOTAL BOX */}
+            <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+              <p className="text-[10px] text-gray-500 uppercase">Total</p>
+              <p className="text-sm font-bold dark:text-white">
+                {filteredTickets.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
         <table className="min-w-full divide-y dark:divide-gray-700">
@@ -235,8 +296,9 @@ const AllTickets = () => {
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
                 { key: "projectName", label: "Application" },
-                { key: "status", label: "Status" },
+                { key: "companyName", label: "Company" },
                 { key: "priority", label: "Priority" },
+                { key: "status", label: "Status" },
                 { key: "assignedToEmp", label: "Assign To" },
                 { key: "docDate", label: "Date" },
                 { key: "completedOn", label: "Due Date" },
@@ -244,9 +306,9 @@ const AllTickets = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs text-center cursor-pointer"
+                  className="px-3 py-2 text-xs text-left cursor-pointer"
                 >
-                  <div className="flex justify-center items-center gap-1">
+                  <div className="flex items-center gap-1 justify-start">
                     {col.label}
                     {renderSortIcon(col.key)}
                   </div>
@@ -257,7 +319,7 @@ const AllTickets = () => {
           <tbody className="divide-y dark:divide-gray-700">
             {paginatedTickets.map((ticket) => {
               const assignedEmployee = employees.find(
-                (e) => e.email === ticket.assignedToEmp
+                (e) => e.email === ticket.assignedToEmp,
               );
               return (
                 <tr
@@ -280,22 +342,42 @@ const AllTickets = () => {
                     </button>
                   </td>
 
-                  <td className="px-3 py-2 text-center">{ticket.id}</td>
-                  <td className="px-3 py-2 text-center">{ticket.title}</td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">{ticket.id}</td>
+                  <td className="px-3 py-2 text-left">{ticket.title}</td>
+                  <td className="px-3 py-2 text-left">
                     {ticket.projectName || "-"}
                   </td>
-                  <td className="px-3 py-2 text-center">{ticket.status}</td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">
+                    {ticket.customer || "-"}
+                  </td>
+
+                  <td className="px-3 py-2 text-left">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${getPriorityStyle(
-                        ticket.priority
+                        ticket.priority,
                       )}`}
                     >
                       {ticket.priority}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-center">
+
+                  <td className="px-3 py-2 text-left">
+                    <select
+                      value={ticket.status}
+                      onChange={(e) =>
+                        handleStatusChange(ticket.id, e.target.value)
+                      }
+                      disabled={role === "customer"}
+                      className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
+                    >
+                      <option value="Inprogress">Inprogress</option>
+                      <option value="Completed">Completed</option>
+                      <option value="YetToAssign">YetToAssign</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </td>
+                  
+                  <td className="px-3 py-2 text-left">
                     {role === "admin" ? (
                       <select
                         value={ticket.assignedToEmp || ""}
@@ -344,9 +426,7 @@ const AllTickets = () => {
             Prev
           </button>
           <button
-            onClick={() =>
-              setCurrentPage((p) => Math.min(p + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
           >

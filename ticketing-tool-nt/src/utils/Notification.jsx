@@ -403,7 +403,7 @@ const NotificationComponent = () => {
                       !n.isRead ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
                     }`}
                   >
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-start">
                       <div className="mt-1 flex-shrink-0">{n.icon}</div>
 
                       <div className="flex-1 min-w-0">

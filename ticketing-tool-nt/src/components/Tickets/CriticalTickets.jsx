@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check ,FileExclamationPoint } from "lucide-react";
+import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check, FileExclamationPoint } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { employeeAPI } from "../../api/employeeAPI";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import TicketPopup from "./TicketPopup";
+import TicketFilters from "./TicketFilters";
 
 const CriticalTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -25,6 +26,12 @@ const CriticalTickets = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
+
+  const [filters, setFilters] = useState({
+    application: "",
+    status: "",
+    assignedTo: "",
+  });
 
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
@@ -51,25 +58,34 @@ const CriticalTickets = () => {
         setLoading(true);
         const allTickets = await ticketAPI.getAllTickets();
 
-        let criticalTickets = allTickets.filter(
+        const normalized = allTickets.map((t) => ({
+          ...t,
+          assignedToEmp: t.email || t.assignedToEmp || "",
+          companyName: t.companyName || t.company || "",
+        }));
+
+        let criticalTickets = normalized.filter(
           (t) => (t.priority || "").toLowerCase() === "critical"
         );
 
-        criticalTickets = criticalTickets.map((t) => {
-          if (!t.assignedToEmp) return t;
-          const emp = employees.find(
-            (e) => e.name === t.assignedToEmp || e.email === t.assignedToEmp
-          );
-          return { ...t, assignedToEmp: emp?.email || t.assignedToEmp };
-        });
+        const visibleTickets =
+          role === "admin"
+            ? criticalTickets
+            : role === "employee"
+              ? criticalTickets.filter(
+                (t) =>
+                  t.assignedToEmp === user.email ||
+                  t.assignedToEmp === user.name
+              )
+              : role === "customer"
+                ? criticalTickets.filter(
+                  (t) =>
+                    t.createdBy === user.email ||
+                    t.createdBy === user.name
+                )
+                : [];
 
-        if (role === "employee") {
-          criticalTickets = criticalTickets.filter(
-            (t) => t.assignedToEmp === user.email
-          );
-        }
-
-        setTickets(criticalTickets);
+        setTickets(visibleTickets);
       } catch (err) {
         console.error(err);
         setTickets([]);
@@ -78,8 +94,8 @@ const CriticalTickets = () => {
       }
     };
 
-    if (user && employees.length) fetchTickets();
-  }, [role, user, employees]);
+    if (user) fetchTickets();
+  }, [role, user]);
 
   /** Sorting */
   const handleSort = (key) => {
@@ -90,8 +106,18 @@ const CriticalTickets = () => {
     setSortConfig({ key, direction });
   };
 
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      return (
+        (!filters.application || t.projectName === filters.application) &&
+        (!filters.status || t.status === filters.status) &&
+        (!filters.assignedTo || t.assignedToEmp === filters.assignedTo)
+      );
+    });
+  }, [tickets, filters]);
+
   const sortedTickets = useMemo(() => {
-    if (!sortConfig.key) return tickets;
+    if (!sortConfig.key) return filteredTickets;
 
     const sorted = [...tickets].sort((a, b) => {
       const aVal = a[sortConfig.key] ?? "";
@@ -106,7 +132,7 @@ const CriticalTickets = () => {
     });
 
     return sortConfig.direction === "desc" ? sorted.reverse() : sorted;
-  }, [tickets, sortConfig]);
+  }, [filteredTickets, sortConfig]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -171,6 +197,34 @@ const CriticalTickets = () => {
     );
   };
 
+  const handleStatusChange = async (ticketId, newStatus) => {
+    const oldTickets = [...tickets];
+
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === ticketId ? { ...t, status: newStatus } : t
+      )
+    );
+
+    try {
+      const res = await ticketAPI.changeTicketStatus({
+        id: ticketId,
+        status: newStatus,
+        empCode: user.email,
+      });
+
+      if (res.success) {
+        setSuccessMessage("Status updated successfully");
+        setTimeout(() => setSuccessMessage(""), 2500);
+      } else {
+        setTickets(oldTickets);
+      }
+    } catch (err) {
+      console.error(err);
+      setTickets(oldTickets);
+    }
+  };
+
   const getPriorityStyle = (priority) => {
     switch ((priority || "").toLowerCase()) {
       case "low":
@@ -208,32 +262,48 @@ const CriticalTickets = () => {
         <ArrowLeft size={14} />
         <span className="text-xs">Back</span>
       </button>
-      
-      {/* Header */}
-<div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-pink-600">
-        <FileExclamationPoint className="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <h1 className="text-xl font-bold dark:text-white">
-          Critical Tickets
-        </h1>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
-          View and manage all critical tickets
-        </p>
-      </div>
-    </div>
 
-    <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
-      <p className="text-[10px] text-gray-500 uppercase">Total</p>
-      <p className="text-sm font-bold dark:text-white">
-        {tickets.length}
-      </p>
-    </div>
-  </div>
-</div>
+      {/* Header */}
+      <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+
+          {/* LEFT SIDE */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-pink-600">
+              <FileExclamationPoint className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold dark:text-white">
+                Critical Tickets
+              </h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                View and manage all critical tickets
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT SIDE */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+
+
+            <TicketFilters
+              filters={filters}
+              setFilters={setFilters}
+              employees={employees}
+              tickets={tickets}
+            />
+
+            {/* TOTAL BOX */}
+            <div className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+              <p className="text-[10px] text-gray-500 uppercase">Total</p>
+              <p className="text-sm font-bold dark:text-white">
+                {filteredTickets.length}
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
@@ -246,8 +316,8 @@ const CriticalTickets = () => {
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
                 { key: "client", label: "Client" },
-                { key: "status", label: "Status" },
                 { key: "priority", label: "Priority" },
+                { key: "status", label: "Status" },
                 { key: "assignedToEmp", label: "Assign To" },
                 { key: "docDate", label: "Date" },
                 { key: "completedOn", label: "Due Date" },
@@ -255,9 +325,9 @@ const CriticalTickets = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs text-center cursor-pointer"
+                  className="px-3 py-2 text-xs text-left cursor-pointer"
                 >
-                  <div className="flex justify-center items-center gap-1">
+                  <div className="flex items-center gap-1 justify-start">
                     {col.label}
                     {renderSortIcon(col.key)}
                   </div>
@@ -277,11 +347,10 @@ const CriticalTickets = () => {
                   key={ticket.id}
                   onMouseEnter={() => setHoveredRow(ticket.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                    hoveredRow === ticket.id
-                      ? "border-l-4 border-red-500"
-                      : ""
-                  } animate-slideUp`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${hoveredRow === ticket.id
+                    ? "border-l-4 border-red-500"
+                    : ""
+                    } animate-slideUp`}
                 >
                   <td className="px-3 py-2 text-center">
                     <button
@@ -295,14 +364,13 @@ const CriticalTickets = () => {
                     </button>
                   </td>
 
-                  <td className="px-3 py-2 text-center">{ticket.id}</td>
-                  <td className="px-3 py-2 text-center">{ticket.title}</td>
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">{ticket.id}</td>
+                  <td className="px-3 py-2 text-left">{ticket.title}</td>
+                  <td className="px-3 py-2 text-left">
                     {ticket.client || "-"}
                   </td>
-                  <td className="px-3 py-2 text-center">{ticket.status}</td>
 
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${getPriorityStyle(
                         ticket.priority
@@ -312,7 +380,23 @@ const CriticalTickets = () => {
                     </span>
                   </td>
 
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">
+                    <select
+                      value={ticket.status}
+                      onChange={(e) =>
+                        handleStatusChange(ticket.id, e.target.value)
+                      }
+                      disabled={role === "customer"}
+                      className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
+                    >
+                      <option value="Inprogress">Inprogress</option>
+                      <option value="Completed">Completed</option>
+                      <option value="YetToAssign">YetToAssign</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </td>
+
+                  <td className="px-3 py-2 text-left">
                     {role === "admin" ? (
                       <select
                         value={ticket.assignedToEmp || ""}
@@ -334,13 +418,13 @@ const CriticalTickets = () => {
                     )}
                   </td>
 
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">
                     {ticket.docDate
                       ? new Date(ticket.docDate).toLocaleDateString()
                       : "-"}
                   </td>
 
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-3 py-2 text-left">
                     {ticket.completedOn
                       ? new Date(ticket.completedOn).toLocaleDateString()
                       : "-"}

@@ -182,7 +182,7 @@ const NewTicket = () => {
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">Select Priority</option>
-              <option value="Low">Normal</option>
+              <option value="Normal">Normal</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
               <option value="Critical">Critical</option>
