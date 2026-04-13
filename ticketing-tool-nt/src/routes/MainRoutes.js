@@ -14,6 +14,7 @@ import AllCustomer from '../components/Customers/AllCustomer';
 import UpdateCustomer from '../components/Customers/UpdateCustomer';
 import ProfileSettings from '../components/settings/Profile';
 import CriticalTickets from '../components/Tickets/CriticalTickets';
+import NewCustomer from '../components/Customers/NewCustomer';
 
 const Dashboard = Loadable(lazy(() => import('../pages/Dashboard')));
 
@@ -110,6 +111,15 @@ const MainRoutes = {
         },
 
         // ---------- CUSTOMER (ADMIN ONLY) ----------
+        
+        {
+            path: '/Newcustomer',
+            element: (
+                <ProtectedRoute allowedRoles={["admin"]}>
+                    <NewCustomer/>
+                </ProtectedRoute>
+            )
+        },
         {
             path: '/allCustomers',
             element: (

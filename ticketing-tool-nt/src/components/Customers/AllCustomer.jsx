@@ -161,9 +161,9 @@ const AllCustomer = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs text-center cursor-pointer"
+                  className="px-3 py-2 text-xs  cursor-pointer"
                 >
-                  <div className="flex justify-center items-center gap-1">
+                  <div className="flex justify-start items-center gap-1">
                     {col.label}
                     {renderSortIcon(col.key)}
                   </div>
@@ -184,24 +184,24 @@ const AllCustomer = () => {
                     : ""
                 } animate-slideUp`}
               >
-                <td className="px-3 py-2 text-center">{customer.userId}</td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">{customer.userId}</td>
+                <td className="px-3 py-2 text-left">
                   {customer.firstName}
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">
                   {customer.email}
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">
                   {customer.company}
                 </td>
-                <td className="px-3 py-2 text-center">{customer.type}</td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">{customer.type}</td>
+                <td className="px-3 py-2 text-left">
                   {customer.loginStatus ? "Online" : "Offline"}
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">
                   {customer.active ? "Active" : "Inactive"}
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">
                   {customer.commonDate?.createdon
                     ? new Date(
                         customer.commonDate.createdon

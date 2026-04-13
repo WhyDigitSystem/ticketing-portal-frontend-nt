@@ -295,8 +295,10 @@ const AllTickets = () => {
               {[
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
+                
                 { key: "projectName", label: "Application" },
                 { key: "companyName", label: "Company" },
+                { key: "User", label: "User" },
                 { key: "priority", label: "Priority" },
                 { key: "status", label: "Status" },
                 { key: "assignedToEmp", label: "Assign To" },
@@ -344,12 +346,14 @@ const AllTickets = () => {
 
                   <td className="px-3 py-2 text-left">{ticket.id}</td>
                   <td className="px-3 py-2 text-left">{ticket.title}</td>
+                  
                   <td className="px-3 py-2 text-left">
                     {ticket.application  || "-"}
                   </td>
                   <td className="px-3 py-2 text-left">
                     {ticket.customer || "-"}
                   </td>
+                  <td className="px-3 py-2 text-left">{ticket.createdBy}</td>
 
                   <td className="px-3 py-2 text-left">
                     <span

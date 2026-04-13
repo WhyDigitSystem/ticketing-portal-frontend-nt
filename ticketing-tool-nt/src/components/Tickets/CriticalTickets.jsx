@@ -315,7 +315,10 @@ const CriticalTickets = () => {
               {[
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
-                { key: "client", label: "Client" },
+                 
+                { key: "projectName", label: "Application" },
+                { key: "companyName", label: "Company" },
+                { key: "User", label: "User" },
                 { key: "priority", label: "Priority" },
                 { key: "status", label: "Status" },
                 { key: "assignedToEmp", label: "Assign To" },
@@ -366,9 +369,14 @@ const CriticalTickets = () => {
 
                   <td className="px-3 py-2 text-left">{ticket.id}</td>
                   <td className="px-3 py-2 text-left">{ticket.title}</td>
+                  
                   <td className="px-3 py-2 text-left">
-                    {ticket.client || "-"}
+                    {ticket.application || "-"}
                   </td>
+                  <td className="px-3 py-2 text-left">
+                    {ticket.customer || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-left">{ticket.createdBy}</td>
 
                   <td className="px-3 py-2 text-left">
                     <span

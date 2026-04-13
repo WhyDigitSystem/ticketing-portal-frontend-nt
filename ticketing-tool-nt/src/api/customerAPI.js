@@ -18,6 +18,30 @@ export const customerAPI = {
     }
   },
 
+
+  // ---------------- createCustomer ----------------
+  createCustomer: async (payload) => {
+    try {
+      const response = await apiClient.post(
+        "/api/user/signup",
+        payload
+      );
+
+      if (response?.statusFlag === "Ok" || response?.status === true) {
+        return response;
+      }
+
+      throw new Error(
+        response?.paramObjectsMap?.errorMessage ||
+        "Failed to create customer"
+      );
+
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      throw error;
+    }
+  },
+
   // ---------------- updateCustomer ----------------
   updateCustomer: async ({ userId, payload }) => {
     try {

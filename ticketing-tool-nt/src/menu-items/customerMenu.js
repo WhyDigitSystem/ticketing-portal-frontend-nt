@@ -1,6 +1,7 @@
 import {
   Users,
   Edit,
+   UserPlus,
 } from "lucide-react";
 
 const customerMenu = {
@@ -10,6 +11,14 @@ const customerMenu = {
   gradient: "from-cyan-500 to-blue-600",
 
   items: [
+
+    {
+      name: "Create Customer",
+      path: "/newcustomer",
+      icon: UserPlus,
+      color: "green"
+    },
+
     {
       name: "All Customers",
       path: "/allcustomers",

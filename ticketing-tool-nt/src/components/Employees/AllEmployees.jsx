@@ -152,9 +152,9 @@ const AllEmployees = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs text-center cursor-pointer"
+                  className="px-3 py-2 text-xs cursor-pointer"
                 >
-                  <div className="flex justify-center items-center gap-1">
+                  <div className="flex justify-start items-center gap-1">
                     {col.label}
                     {renderSortIcon(col.key)}
                   </div>
@@ -175,14 +175,14 @@ const AllEmployees = () => {
                     : ""
                 }`}
               >
-                <td className="px-3 py-2 text-center">{emp.id}</td>
-                <td className="px-3 py-2 text-center">{emp.name}</td>
-                <td className="px-3 py-2 text-center">{emp.code}</td>
-                <td className="px-3 py-2 text-center">{emp.department}</td>
-                <td className="px-3 py-2 text-center">{emp.designation}</td>
-                <td className="px-3 py-2 text-center">{emp.branch}</td>
-                <td className="px-3 py-2 text-center">{emp.email}</td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">{emp.id}</td>
+                <td className="px-3 py-2 text-left">{emp.name}</td>
+                <td className="px-3 py-2 text-left">{emp.code}</td>
+                <td className="px-3 py-2 text-left">{emp.department}</td>
+                <td className="px-3 py-2 text-left">{emp.designation}</td>
+                <td className="px-3 py-2 text-left">{emp.branch}</td>
+                <td className="px-3 py-2 text-left">{emp.email}</td>
+                <td className="px-3 py-2 text-left">
                   {emp.doj
                     ? new Date(emp.doj).toLocaleDateString()
                     : "-"}
