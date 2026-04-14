@@ -260,7 +260,7 @@ const CriticalTickets = () => {
         className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3 animate-slideUp"
       >
         <ArrowLeft size={14} />
-        <span className="text-xs">Back</span>
+        <span className="text-xs">Back to Ticket Management</span>
       </button>
 
       {/* Header */}
@@ -269,11 +269,11 @@ const CriticalTickets = () => {
 
           {/* LEFT SIDE */}
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-pink-600">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-red-500 to-rose-600">
               <FileExclamationPoint className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold dark:text-white">
+              <h1 className="text-lg font-bold dark:text-white">
                 Critical Tickets
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">

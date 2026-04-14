@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Save, X, Ticket, Check } from "lucide-react";
+import { Save,ArrowLeft, X, PlusCircle, Check } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const NewTicket = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ const NewTicket = () => {
     description: "",
     file: null,
   });
+
+   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -117,6 +120,15 @@ const NewTicket = () => {
         </div>
       )}
 
+
+      <button
+        onClick={() => navigate("/menu/ticket")}
+        className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3 animate-slideUp"
+      >
+        <ArrowLeft size={14} />
+        <span className="text-xs">Back to Ticket Management</span>
+      </button>
+
       {/* Header */}
       <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4">
 
@@ -127,12 +139,12 @@ const NewTicket = () => {
 
           {/* Title */}
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
-              <Ticket className="h-6 w-6 text-white" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+              <PlusCircle className="h-6 w-6 text-white" />
             </div>
 
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                 New Ticket
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">

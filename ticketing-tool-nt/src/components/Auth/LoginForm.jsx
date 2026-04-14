@@ -554,64 +554,64 @@ const AuthForm = () => {
               )}
 
             {/* Logo */}
-            <div className="text-center mb-8" >
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-16 h-16">
-                  {/* Light mode logo */}
-                  <img
-                    src={efitLogo}
-                    alt="Efit Logo"
-                    className="w-full h-full object-contain dark:hidden"
-                  />
+<div className="text-center mb-8 flex flex-col items-center">
+<div className="flex items-center justify-center gap-3 mb-6 select-none">
 
-                  {/* Dark mode logo with light background */}
-                  <div className="hidden dark:block w-full h-full   p-0.2">
-                    <img
-                      src={efitLogo}
-                      alt="Efit Logo"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                </div>
-                <div className="text-left">
-                  <h1 className="pt-1 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Ticketing Portal
-                  </h1>
-                </div>
-              </div>
+  {/* Logo */}
+  <div className="w-20 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+    <img
+      src={efitLogo}
+      alt="Efit Logo"
+      className="w-14 h-14 object-contain"
+    />
+  </div>
 
-              {/* Dynamic Headings */}
-              {verificationStep === "verify" ? (
-                <>
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-                    Verify Your Email
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Enter the 6-digit OTP sent to {formData.email}
-                  </p>
-                </>
-              ) : verificationStep === "success" ? (
-                <>
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-                    Account Created Successfully!
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Redirecting to login...
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-                    {isSignup ? "Create an Account" : "Welcome Back"}
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {isSignup
-                      ? "Get started with your logistics journey"
-                      : "Sign in to your account"}
-                  </p>
-                </>
-              )}
-            </div>
+  {/* Minimal Brand */}
+  <h1 className="text-xl md:text-2xl font-medium tracking-tight text-gray-900 dark:text-gray-100">
+    <span className="text-lg uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
+    Ticketing Portal
+  </span>
+  </h1>
+
+</div>
+
+  {/* Dynamic Headings */}
+  <div className="space-y-1 max-w-xs">
+    {verificationStep === "verify" ? (
+      <>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+          Verify Your Email
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Enter the 6-digit OTP sent to{" "}
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            {formData?.email}
+          </span>
+        </p>
+      </>
+    ) : verificationStep === "success" ? (
+      <>
+        <h2 className="text-lg font-semibold text-green-600">
+          Account Created Successfully!
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Redirecting to login...
+        </p>
+      </>
+    ) : (
+      <>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+          {isSignup ? "Create an Account" : "Welcome Back"}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {isSignup
+            ? "Get started with your logistics journey"
+            : "Sign in to your account"}
+        </p>
+      </>
+    )}
+  </div>
+</div>
 
             {/* Error Message */}
             {errorMessage && (
@@ -623,11 +623,11 @@ const AuthForm = () => {
             {/* Auth Toggle - Only show when not in verification steps */}
             {verificationStep === "form" && (
               <div className="flex justify-center mb-6">
-                <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                <div>
                   <button
                     type="button"
                     onClick={() => handleAuthToggle(false)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${!isSignup
+                    className={`px-5 py-2 text-sm font-medium rounded-md transition-all ${!isSignup
                       ? "bg-white dark:bg-gray-700 text-blue-600 shadow-sm"
                       : "text-gray-500 dark:text-gray-400"
                       }`}
@@ -888,7 +888,9 @@ const AuthForm = () => {
                 </div>
 
                 <div className="text-center">
-                  <h3 className="text-xl font-bold text-white mb-1">Ticketing Portal</h3>
+                  <h3 className="text-xl font-bold text-white mb-1"><span className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
+   TICKETING PORTAL
+  </span></h3>
                   <div className="w-16 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto mt-2 rounded-full" />
                   <p className="text-[11px] text-blue-300/70 mt-2 tracking-wide">
                     Speed • Transparency • Control

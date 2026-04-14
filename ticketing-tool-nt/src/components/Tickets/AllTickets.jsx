@@ -5,7 +5,7 @@ import {
   ChevronUp,
   ChevronDown,
   Check,
-  Tags,
+  List,
 } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { employeeAPI } from "../../api/employeeAPI";
@@ -188,7 +188,6 @@ const AllTickets = () => {
 
   const getPriorityStyle = (priority) => {
     switch ((priority || "").toLowerCase()) {
-      case "low":
       case "normal":
         return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300";
       case "medium":
@@ -247,7 +246,7 @@ const AllTickets = () => {
         className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3 animate-slideUp"
       >
         <ArrowLeft size={14} />
-        <span className="text-xs">Back</span>
+        <span className="text-xs">Back to Ticket Management</span>
       </button>
 
       {/* Header */}
@@ -255,11 +254,11 @@ const AllTickets = () => {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* LEFT SIDE */}
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
-              <Tags className="h-6 w-6 text-white" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500">
+              <List className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold dark:text-white">All Tickets</h1>
+              <h1 className="text-lg font-bold dark:text-white">All Tickets</h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 View and manage all tickets
               </p>

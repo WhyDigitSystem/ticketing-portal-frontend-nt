@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft,
-  Users,
+  List,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
@@ -105,18 +105,18 @@ const AllEmployees = () => {
         className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-3"
       >
         <ArrowLeft size={14} />
-        <span className="text-xs">Back</span>
+        <span className="text-xs">Back to Employee Management</span>
       </button>
 
       {/* Header */}
       <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
-              <Users className="h-6 w-6 text-white" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500">
+              <List className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold dark:text-white">
+              <h1 className="text-lg font-bold dark:text-white">
                 All Employees
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">

@@ -58,16 +58,16 @@ const Header = () => {
   };
 
   const getUserRole = () => {
-    if (user?.type === "Transporter") return "Transport Manager";
-    if (user?.type === "Industry") return "Industry Manager";
+    if (user?.type === "Employee") return "Operational Staff";
+    if (user?.type === "Customer") return "Customer";
     if (user?.type === "Admin") return "System Administrator";
     return user?.role || "User";
   };
 
   const getStatusColor = () => {
-    if (user?.type === "Transporter") return "bg-green-500";
-    if (user?.type === "Industry") return "bg-blue-500";
-    if (user?.type === "Admin") return "bg-purple-500";
+    if (user?.type === "Employee") return "bg-green-500";
+    if (user?.type === "Customer") return "bg-blue-500";
+    if (user?.type === "Admin") return "bg-yellow-500";
     return "bg-gray-500";
   };
 
@@ -168,7 +168,7 @@ const Header = () => {
                 className="flex items-center space-x-3 pl-3 border-l border-gray-200 dark:border-gray-700 py-1"
               >
                 <div className="relative">
-                  <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm">
+                  <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-950 rounded-xl flex items-center justify-center text-white font-semibold shadow-sm">
                     {getUserInitials()}
                   </div>
                   <div
@@ -199,7 +199,7 @@ const Header = () => {
                   <div className="p-5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-800">
                     <div className="flex items-start space-x-3">
                       <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-950 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
                           {getUserInitials()}
                         </div>
                         <div

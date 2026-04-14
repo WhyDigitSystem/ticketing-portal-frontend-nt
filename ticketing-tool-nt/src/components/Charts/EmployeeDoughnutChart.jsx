@@ -95,7 +95,7 @@ const EmployeeDoughnutChart = ({ theme }) => {
   };
 
   return (
-    <div style={{ height: "320px", width: "100%" }}>
+    <div style={{ height: "300px", width: "100%" }}>
       <Doughnut data={data} options={options} />
     </div>
   );

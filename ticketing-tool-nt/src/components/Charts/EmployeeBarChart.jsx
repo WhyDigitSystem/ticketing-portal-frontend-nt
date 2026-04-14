@@ -27,7 +27,7 @@ const EmployeeBarChart = ({ theme }) => {
           (emp) => emp.empName && emp.empName.trim() !== ""
         );
 
-        // 🔥 Sort by total tickets (better alignment visually)
+        // Sort by total tickets
         filtered.sort(
           (a, b) =>
             b.inprogress + b.completed - (a.inprogress + a.completed)
@@ -44,10 +44,9 @@ const EmployeeBarChart = ({ theme }) => {
     fetchData();
   }, []);
 
-  const completedColor =
-    theme === "dark" ? "rgba(52,211,153,0.8)" : "rgba(54,162,235,0.7)";
-  const inProgressColor =
-    theme === "dark" ? "rgba(59,130,246,0.8)" : "rgba(153,102,255,0.7)";
+  // Blue theme colors
+  const completedColor = "rgba(29, 78, 216, 0.9)";   // dark blue
+  const inProgressColor = "rgba(96, 165, 250, 0.8)"; // light blue
 
   const textColor = theme === "dark" ? "#e5e7eb" : "#1f2937";
   const gridColor =
@@ -62,7 +61,7 @@ const EmployeeBarChart = ({ theme }) => {
         data: completedTickets,
         backgroundColor: completedColor,
         borderRadius: 6,
-        barThickness: 20, 
+        barThickness: 20,
       },
       {
         label: "In Progress",
@@ -76,19 +75,14 @@ const EmployeeBarChart = ({ theme }) => {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
     layout: {
-      padding: {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10,
-      },
+      padding: 10,
     },
     plugins: {
       legend: {
         position: "top",
-        align: "end", 
+        align: "end",
         labels: {
           color: textColor,
           boxWidth: 12,
@@ -98,7 +92,7 @@ const EmployeeBarChart = ({ theme }) => {
       title: {
         display: true,
         text: "Employee Ticket Overview",
-        align: "start", 
+        align: "start",
         color: textColor,
         font: { size: 16, weight: "bold" },
       },
@@ -112,18 +106,18 @@ const EmployeeBarChart = ({ theme }) => {
       x: {
         ticks: {
           color: textColor,
-          maxRotation: 30, 
+          maxRotation: 30,
           minRotation: 0,
         },
         grid: {
-          display: false, 
+          display: false,
         },
       },
       y: {
         beginAtZero: true,
         ticks: {
           color: textColor,
-          stepSize: 1, 
+          stepSize: 1,
         },
         grid: {
           color: gridColor,
@@ -133,7 +127,7 @@ const EmployeeBarChart = ({ theme }) => {
   };
 
   return (
-    <div style={{ height: "350px", width: "100%" }}>
+    <div style={{ height: "300px", width: "100%" }}>
       <Bar data={data} options={options} />
     </div>
   );

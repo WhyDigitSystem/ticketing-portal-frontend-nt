@@ -9,14 +9,14 @@ const employeeMenu = {
   title: "Employee Management",
   description: "Manage employees data",
   icon: Users,
-  gradient: "from-emerald-500 to-green-600",
+  gradient: "from-cyan-600 to-blue-700",
 
   items: [
     {
       name: "Create Employee",
       path: "/newemployee",
       icon: UserPlus,
-      color: "green"
+      color: "blue"
     },
     {
       name: "All Employees",
@@ -28,7 +28,7 @@ const employeeMenu = {
       name: "Update Employee",
       path: "/editemployee",
       icon: Edit,
-      color: "orange"
+      color: "blue"
     }
   ]
 };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, Save, X, User, Check } from "lucide-react";
+import { ArrowLeft, Save, X, PlusCircle, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { employeeAPI } from "../../api/employeeAPI";
 import { encryptPassword } from "../../utils/PasswordEnc";
@@ -137,11 +137,11 @@ const NewEmployee = () => {
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-3">
           {/* Title */}
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
-              <User className="h-6 w-6 text-white" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+              <PlusCircle className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                 New Employee
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">

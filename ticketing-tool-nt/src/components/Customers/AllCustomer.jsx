@@ -3,7 +3,7 @@ import {
   ArrowLeft,
   ChevronUp,
   ChevronDown,
-  Users,
+  List,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { customerAPI } from "../../api/customerAPI";
@@ -121,11 +121,11 @@ const AllCustomer = () => {
       <div className="relative mb-6 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 animate-slideUp">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
-              <Users className="h-6 w-6 text-white" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500">
+              <List className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                 All Customers
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -153,7 +153,6 @@ const AllCustomer = () => {
                 { key: "firstName", label: "Name" },
                 { key: "email", label: "Email" },
                 { key: "company", label: "Company" },
-                { key: "type", label: "Type" },
                 { key: "loginStatus", label: "Login" },
                 { key: "active", label: "Active" },
                 { key: "createdon", label: "Created On" },
@@ -194,7 +193,6 @@ const AllCustomer = () => {
                 <td className="px-3 py-2 text-left">
                   {customer.company}
                 </td>
-                <td className="px-3 py-2 text-left">{customer.type}</td>
                 <td className="px-3 py-2 text-left">
                   {customer.loginStatus ? "Online" : "Offline"}
                 </td>

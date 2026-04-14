@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, Save, X, User, Search, Check } from "lucide-react";
+import { ArrowLeft, Save, X, Edit, Search, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { customerAPI } from "../../api/customerAPI";
 import { encryptPassword } from "../../utils/PasswordEnc";
@@ -139,8 +139,8 @@ const UpdateCustomer = () => {
 
       <div className="mb-6 p-4 rounded-xl bg-gray-100 dark:bg-gray-800 flex justify-between items-center animate-slideUp">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500 rounded-lg text-white">
-            <User size={18} />
+          <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 shadow-md">
+            <Edit className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">Update Customer</h1>
