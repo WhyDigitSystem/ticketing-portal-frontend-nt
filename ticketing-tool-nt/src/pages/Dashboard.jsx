@@ -65,36 +65,36 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5 animate-fadeIn">
+    <div className="bg-gray-50 dark:bg-gray-900 px-3 animate-fadeIn">
       <div className="max-w-6xl mx-auto">
 
         {/* ================= HEADER (MenuPage style) ================= */}
-        <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4">
+        <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-3">
 
-          {/* background blobs */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-to-tr from-cyan-500/10 to-teal-500/10 rounded-full blur-2xl"></div>
+  {/* background blobs (match smaller size) */}
+  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+  <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-cyan-500/10 to-teal-500/10 rounded-full blur-xl"></div>
 
-          <div className="relative z-10 flex items-center justify-between flex-wrap gap-3">
+  <div className="relative z-10 flex items-center justify-between flex-wrap gap-3">
 
-            {/* LEFT */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-md">
-                <LayoutDashboard className="h-6 w-6 text-white" />
-              </div>
+    {/* LEFT */}
+    <div className="flex items-center gap-3">
+      <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 shadow-sm">
+        <LayoutDashboard className="h-5 w-5 text-white" />
+      </div>
 
-              <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Dashboard
-                </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Manage tickets and monitor system activity
-                </p>
-              </div>
-            </div>
+      <div>
+        <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
+          Dashboard
+        </h1>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          Manage tickets and monitor system activity
+        </p>
+      </div>
+    </div>
 
-          </div>
-        </div>
+  </div>
+</div>
 
         {/* ================= CARDS ================= */}
         <div className="flex flex-wrap gap-2 justify-start animate-slideUp">
@@ -148,20 +148,32 @@ const Dashboard = () => {
         {/* ================= CHARTS (kept same) ================= */}
         <div className="mt-6 animate-slideUp">
 
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-2 rounded-md bg-gradient-to-br from-blue-600 to-cyan-500">
-              <TrendingUp className="h-4 w-4 text-white" />
-            </div>
+          <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-3">
 
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Employee Ticket Stats
-              </h2>
-              <p className="text-[11px] text-gray-500">
-                Overview of ticket distribution
-              </p>
-            </div>
-          </div>
+  {/* background blobs */}
+  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+  <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-cyan-500/10 to-teal-500/10 rounded-full blur-xl"></div>
+
+  <div className="relative z-10 flex items-center justify-between flex-wrap gap-3">
+
+    {/* LEFT */}
+    <div className="flex items-center gap-3">
+      <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 shadow-sm">
+        <TrendingUp className="h-5 w-5 text-white" />
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          Employee Ticket Stats
+        </h2>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          Overview of ticket distribution
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
 
           <div className="flex flex-col lg:flex-row gap-3">
 

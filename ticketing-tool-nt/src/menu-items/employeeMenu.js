@@ -1,5 +1,5 @@
 import {
-  Users,
+  IdCardLanyard,
   List,
   UserPlus,
   Edit
@@ -8,8 +8,8 @@ import {
 const employeeMenu = {
   title: "Employee Management",
   description: "Manage employees data",
-  icon: Users,
-  gradient: "from-cyan-600 to-blue-700",
+  icon: IdCardLanyard,
+  gradient: "bg-gradient-to-br from-emerald-600 to-teal-500",
 
   items: [
     {

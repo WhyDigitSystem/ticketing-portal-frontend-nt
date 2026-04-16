@@ -20,6 +20,7 @@ const MenuPage = () => {
 
   const Icon = config.icon;
 
+
   const filteredItems = config.items?.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     return item.roles.includes(role);
@@ -85,60 +86,60 @@ const MenuPage = () => {
                   </button>
 
         {/* ================= HEADER ================= */}
-        <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4">
+        <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-3">
 
-          {/* blobs */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-to-tr from-cyan-500/10 to-teal-500/10 rounded-full blur-2xl"></div>
+  {/* blobs (reduced) */}
+  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+  <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-cyan-500/10 to-teal-500/10 rounded-full blur-xl"></div>
 
-          <div className="relative z-10 flex flex-col gap-3">
+  <div className="relative z-10 flex flex-col gap-2">
 
-            {/* TITLE ROW */}
-            <div className="flex items-center justify-between flex-wrap gap-3">
+    {/* TITLE ROW */}
+    <div className="flex items-center justify-between flex-wrap gap-2">
 
-              {/* LEFT TITLE */}
-              <div className="flex items-center gap-3">
+      {/* LEFT TITLE */}
+      <div className="flex items-center gap-2.5">
 
-                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 shadow-md">
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {config.title}
-                  </h1>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {config.description}
-                  </p>
-                </div>
-
-              </div>
-
-              {/* STATS */}
-              {config.stats && (
-                <div className="flex items-center gap-3 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-
-                  <div className="text-right">
-                    <p className="text-[10px] text-gray-500 uppercase">
-                      {config.stats.period}
-                    </p>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">
-                      {config.stats.total}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-green-500">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span className="text-xs">{config.stats.change}</span>
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-
-          </div>
+        <div className={`p-1.5 rounded-lg ${config.gradient} shadow-sm`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
+
+        <div>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
+            {config.title}
+          </h1>
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            {config.description}
+          </p>
+        </div>
+
+      </div>
+
+      {/* STATS */}
+      {config.stats && (
+        <div className="flex items-center gap-2 px-2.5 py-1 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+
+          <div className="text-right">
+            <p className="text-[9px] text-gray-500 uppercase">
+              {config.stats.period}
+            </p>
+            <p className="text-xs font-semibold text-gray-900 dark:text-white">
+              {config.stats.total}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1 text-green-500">
+            <TrendingUp className="h-3 w-3" />
+            <span className="text-[10px]">{config.stats.change}</span>
+          </div>
+
+        </div>
+      )}
+
+    </div>
+
+  </div>
+</div>
 
         {/* ================= CARDS ================= */}
         <div className="flex flex-wrap gap-3 justify-start animate-slideUp">

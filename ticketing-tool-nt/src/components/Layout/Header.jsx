@@ -49,6 +49,7 @@ const Header = () => {
     });
   };
 
+
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
       weekday: "short",
@@ -65,11 +66,11 @@ const Header = () => {
   };
 
   const getStatusColor = () => {
-    if (user?.type === "Employee") return "bg-green-500";
-    if (user?.type === "Customer") return "bg-blue-500";
-    if (user?.type === "Admin") return "bg-yellow-500";
-    return "bg-gray-500";
-  };
+  if (["Employee", "Customer", "Admin"].includes(user?.type)) {
+    return "bg-green-500";
+  }
+  return "bg-gray-500";
+};
 
   const getUserInitials = () => {
     if (!user?.name) return "U";
@@ -80,6 +81,21 @@ const Header = () => {
       .toUpperCase()
       .slice(0, 2);
   };
+
+
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setShowProfileDropdown(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm">
@@ -104,27 +120,6 @@ const Header = () => {
             >
               <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
-          </div>
-
-          {/* Center Section - Search */}
-          <div className="flex-1 max-w-2xl mx-4 lg:mx-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search shipments, trips, customers, or vendors..."
-                className="
-                  w-full pl-10 pr-10 py-2.5 
-                  bg-gray-50 dark:bg-gray-800 
-                  border border-gray-200 dark:border-gray-700 
-                  rounded-xl 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent 
-                  transition-all text-sm 
-                  placeholder-gray-400 dark:placeholder-gray-500 
-                  text-gray-900 dark:text-white
-                "
-              />
-            </div>
           </div>
 
           {/* Right Section */}

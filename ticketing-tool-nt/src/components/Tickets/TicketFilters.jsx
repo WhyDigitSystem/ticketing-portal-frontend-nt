@@ -5,6 +5,7 @@ const TicketFilters = ({
   setFilters,
   employees,
   tickets,
+  role, 
 }) => {
   // Unique values
   const applications = [
@@ -56,24 +57,26 @@ const TicketFilters = ({
         ))}
       </select>
 
-      {/* Assigned To Filter */}
-      <select
-        value={filters.assignedTo}
-        onChange={(e) =>
-          setFilters((prev) => ({
-            ...prev,
-            assignedTo: e.target.value,
-          }))
-        }
-        className="px-3 py-1.5 rounded-lg border text-sm dark:bg-gray-800 dark:border-gray-700"
-      >
-        <option value="">All Employees</option>
-        {employees.map((emp) => (
-          <option key={emp.id} value={emp.email}>
-            {emp.name}
-          </option>
-        ))}
-      </select>
+      
+      {role !== "employee" && (
+        <select
+          value={filters.assignedTo}
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              assignedTo: e.target.value,
+            }))
+          }
+          className="px-3 py-1.5 rounded-lg border text-sm dark:bg-gray-800 dark:border-gray-700"
+        >
+          <option value="">All Employees</option>
+          {employees.map((emp) => (
+            <option key={emp.id} value={emp.email}>
+              {emp.name}
+            </option>
+          ))}
+        </select>
+      )}
 
       {/* Clear Filters */}
       <button

@@ -1,5 +1,6 @@
 import {
-  Users,
+  List,
+  SquareUser,
   Edit,
    UserPlus,
 } from "lucide-react";
@@ -7,8 +8,8 @@ import {
 const customerMenu = {
   title: "Customer Management",
   description: "Manage customers, interactions, and relationships",
-  icon: Users,
-  gradient: "from-cyan-600 to-blue-700",
+  icon: SquareUser,
+  gradient: "bg-gradient-to-br from-violet-600 to-indigo-500",
 
   items: [
 
@@ -22,7 +23,7 @@ const customerMenu = {
     {
       name: "All Customers",
       path: "/allcustomers",
-      icon: Users,
+      icon: List,
       color: "bule"
     },
     

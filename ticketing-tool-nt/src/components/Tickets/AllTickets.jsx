@@ -67,15 +67,15 @@ const AllTickets = () => {
             ? normalized
             : role === "employee"
               ? normalized.filter(
-                  (t) =>
-                    t.assignedToEmp === user.email ||
-                    t.assignedToEmp === user.name,
-                )
+                (t) =>
+                  t.assignedToEmp === user.email ||
+                  t.assignedToEmp === user.name,
+              )
               : role === "customer"
                 ? normalized.filter(
-                    (t) =>
-                      t.createdBy === user.email || t.createdBy === user.name,
-                  )
+                  (t) =>
+                    t.createdBy === user.email || t.createdBy === user.name,
+                )
                 : [];
         setTickets(visibleTickets);
       } catch (err) {
@@ -273,6 +273,7 @@ const AllTickets = () => {
               setFilters={setFilters}
               employees={employees}
               tickets={tickets}
+              role={role}
             />
 
             {/* TOTAL BOX */}
@@ -294,13 +295,15 @@ const AllTickets = () => {
               {[
                 { key: "id", label: "Ticket No" },
                 { key: "title", label: "Title" },
-                
+
                 { key: "projectName", label: "Application" },
                 { key: "companyName", label: "Company" },
                 { key: "User", label: "User" },
                 { key: "priority", label: "Priority" },
                 { key: "status", label: "Status" },
-                { key: "assignedToEmp", label: "Assign To" },
+                ...(role !== "employee"
+                  ? [{ key: "assignedToEmp", label: "Assign To" }]
+                  : []),
                 { key: "docDate", label: "Date" },
                 { key: "completedOn", label: "Due Date" },
               ].map((col) => (
@@ -327,9 +330,8 @@ const AllTickets = () => {
                   key={ticket.id}
                   onMouseEnter={() => setHoveredRow(ticket.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                    hoveredRow === ticket.id ? "border-l-4 border-blue-500" : ""
-                  } animate-slideUp`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${hoveredRow === ticket.id ? "border-l-4 border-blue-500" : ""
+                    } animate-slideUp`}
                 >
                   <td className="px-3 py-2 text-center">
                     <button
@@ -345,9 +347,9 @@ const AllTickets = () => {
 
                   <td className="px-3 py-2 text-left">{ticket.id}</td>
                   <td className="px-3 py-2 text-left">{ticket.title}</td>
-                  
+
                   <td className="px-3 py-2 text-left">
-                    {ticket.application  || "-"}
+                    {ticket.application || "-"}
                   </td>
                   <td className="px-3 py-2 text-left">
                     {ticket.customer || "-"}
@@ -379,28 +381,30 @@ const AllTickets = () => {
                       <option value="Rejected">Rejected</option>
                     </select>
                   </td>
-                  
-                  <td className="px-3 py-2 text-left">
-                    {role === "admin" ? (
-                      <select
-                        value={ticket.assignedToEmp || ""}
-                        onChange={(e) =>
-                          handleAssignChange(ticket.id, e.target.value)
-                        }
-                        disabled={assigning[ticket.id]}
-                        className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
-                      >
-                        <option value="">Unassigned</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.email}>
-                            {emp.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignedEmployee?.name || "Unassigned"
-                    )}
-                  </td>
+
+                  {role !== "employee" && (
+                    <td className="px-3 py-2 text-left">
+                      {role === "admin" ? (
+                        <select
+                          value={ticket.assignedToEmp || ""}
+                          onChange={(e) =>
+                            handleAssignChange(ticket.id, e.target.value)
+                          }
+                          disabled={assigning[ticket.id]}
+                          className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
+                        >
+                          <option value="">Unassigned</option>
+                          {employees.map((emp) => (
+                            <option key={emp.id} value={emp.email}>
+                              {emp.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        assignedEmployee?.name || "Unassigned"
+                      )}
+                    </td>
+                  )}
                   <td className="px-3 py-2 text-center">
                     {new Date(ticket.docDate).toLocaleDateString()}
                   </td>

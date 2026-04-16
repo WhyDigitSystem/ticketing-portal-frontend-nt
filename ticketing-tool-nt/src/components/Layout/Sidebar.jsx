@@ -57,12 +57,26 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={clsx(
-        "bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300",
-        sidebarOpen ? "w-[170px]" : "w-20",
-        "flex-shrink-0 flex flex-col h-full"
-      )}
-    >
+  className={clsx(
+    "bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col",
+
+    // MOBILE overlay
+    "absolute md:relative left-0 top-14 md:top-auto z-40",
+    "h-[calc(100%-3.5rem)] md:h-full",
+
+    sidebarOpen ? "w-[170px]" : "w-20",
+
+    //MOBILE ANIMATION 
+    "transform md:transform-none",
+    "transition-transform duration-300 ease-in-out md:transition-all md:duration-300",
+
+    sidebarOpen
+      ? "translate-x-0"
+      : "-translate-x-full md:translate-x-0",
+
+    "flex-shrink-0"
+  )}
+>
       <div className="mt-2 flex-1 px-1.5 space-y-0.5 overflow-y-auto">
         {filteredNavigation.map((item) => {
           const Icon = item.icon;

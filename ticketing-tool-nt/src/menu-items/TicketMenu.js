@@ -9,7 +9,7 @@ const ticketMenu = {
   description: "Create and manage ticket details before submission",
   icon: 
   Tag,
-  gradient: "from-cyan-600 to-blue-700",
+  gradient: "bg-gradient-to-br from-blue-600 to-sky-500",
 
   items: [
     {

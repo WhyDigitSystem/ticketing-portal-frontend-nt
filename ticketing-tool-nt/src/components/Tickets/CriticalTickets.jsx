@@ -291,6 +291,7 @@ const CriticalTickets = () => {
               setFilters={setFilters}
               employees={employees}
               tickets={tickets}
+              role={role}
             />
 
             {/* TOTAL BOX */}
@@ -321,7 +322,9 @@ const CriticalTickets = () => {
                 { key: "User", label: "User" },
                 { key: "priority", label: "Priority" },
                 { key: "status", label: "Status" },
-                { key: "assignedToEmp", label: "Assign To" },
+                ...(role !== "employee"
+                  ? [{ key: "assignedToEmp", label: "Assign To" }]
+                  : []),
                 { key: "docDate", label: "Date" },
                 { key: "completedOn", label: "Due Date" },
               ].map((col) => (
@@ -404,27 +407,29 @@ const CriticalTickets = () => {
                     </select>
                   </td>
 
-                  <td className="px-3 py-2 text-left">
-                    {role === "admin" ? (
-                      <select
-                        value={ticket.assignedToEmp || ""}
-                        onChange={(e) =>
-                          handleAssignChange(ticket.id, e.target.value)
-                        }
-                        disabled={assigning[ticket.id]}
-                        className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
-                      >
-                        <option value="">Unassigned</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.email}>
-                            {emp.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      assignedEmployee?.name || "Unassigned"
-                    )}
-                  </td>
+                  {role !== "employee" && (
+                    <td className="px-3 py-2 text-left">
+                      {role === "admin" ? (
+                        <select
+                          value={ticket.assignedToEmp || ""}
+                          onChange={(e) =>
+                            handleAssignChange(ticket.id, e.target.value)
+                          }
+                          disabled={assigning[ticket.id]}
+                          className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
+                        >
+                          <option value="">Unassigned</option>
+                          {employees.map((emp) => (
+                            <option key={emp.id} value={emp.email}>
+                              {emp.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        assignedEmployee?.name || "Unassigned"
+                      )}
+                    </td>
+                  )}
 
                   <td className="px-3 py-2 text-left">
                     {ticket.docDate
