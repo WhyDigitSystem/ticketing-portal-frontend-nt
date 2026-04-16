@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Save,ArrowLeft, X, PlusCircle, Check } from "lucide-react";
+import { Save, ArrowLeft, X, PlusCircle, Check } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ const NewTicket = () => {
     file: null,
   });
 
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -24,7 +24,7 @@ const NewTicket = () => {
   const client = user?.type || "Client"; // only if your backend provides this
 
 
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -220,11 +220,26 @@ const NewTicket = () => {
             <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
               Attachment
             </label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="w-full text-sm"
-            />
+
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer text-xs px-3 py-1.5 rounded-md border
+      border-gray-300 dark:border-gray-600
+      bg-white dark:bg-gray-700
+      hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+
+                Choose File
+
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+
+              <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
+                {formData.file ? formData.file.name : "No file selected"}
+              </span>
+            </div>
           </div>
 
         </form>

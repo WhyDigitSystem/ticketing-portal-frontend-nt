@@ -18,9 +18,6 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const [editingComment, setEditingComment] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
-
-
-
   const user = useSelector((state) => state.auth.user);
 
   const type = user?.type?.toLowerCase();
@@ -61,7 +58,6 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     });
   };
 
-
   const parseDate = (timestamp) => {
     if (!timestamp) return null;
 
@@ -88,7 +84,11 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     try {
       setLoading(true);
       const data = await ticketAPI.getCommentsByTicketId(ticket.id);
-      setComments(normalizeComments(data || []).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
+      setComments(
+        normalizeComments(data || []).sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+        ),
+      );
     } catch (err) {
       console.error(err);
       setComments([]);
@@ -256,8 +256,13 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
       >
         {/* HEADER */}
         <div className="flex justify-between items-center px-5 py-3 border-b bg-gray-50 dark:bg-gray-800">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Ticket Details</h2>
-          <button onClick={onClose} className="text-gray-600 dark:text-gray-300">
+          <h2 className="font-semibold text-gray-900 dark:text-white">
+            Ticket Details
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-600 dark:text-gray-300"
+          >
             <X />
           </button>
         </div>
@@ -269,7 +274,9 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
               {/* Ticket Info */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <p><b>Title:</b> {ticketData.title}</p>
+                  <p>
+                    <b>Title:</b> {ticketData.title}
+                  </p>
                   <select
                     value={status}
                     onChange={(e) => handleStatusChange(e.target.value)}
@@ -282,10 +289,18 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                     <option value="Rejected">Rejected</option>
                   </select>
                 </div>
-                <p><b>customer:</b> {ticketData.customer || "-"}</p>
-                <p><b>Description:</b> {ticketData.description}</p>
-                <p><b>Priority:</b> {ticketData.priority}</p>
-                <p><b>Assigned To:</b> {ticketData.assignedToEmp || "-"}</p>
+                <p>
+                  <b>customer:</b> {ticketData.customer || "-"}
+                </p>
+                <p>
+                  <b>Description:</b> {ticketData.description}
+                </p>
+                <p>
+                  <b>Priority:</b> {ticketData.priority}
+                </p>
+                <p>
+                  <b>Assigned To:</b> {ticketData.assignedToEmp || "-"}
+                </p>
               </div>
 
               {/* Ticket Image */}
@@ -309,7 +324,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                         setPreviewImage(
                           ticketData.imageData.startsWith("data:")
                             ? ticketData.imageData
-                            : `data:image/png;base64,${ticketData.imageData}`
+                            : `data:image/png;base64,${ticketData.imageData}`,
                         )
                       }
                     />
@@ -338,13 +353,16 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                 {loading ? (
                   <p className="text-sm text-gray-500">Loading...</p>
                 ) : comments.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center">No comments</p>
+                  <p className="text-sm text-gray-400 text-center">
+                    No comments
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {comments.map((c) => {
                       const name = getDisplayName(c.commentName);
                       const initial = name.charAt(0).toUpperCase();
-                      const canEditOrDelete = c.commentName?.toLowerCase() === currentUserEmail;
+                      const canEditOrDelete =
+                        c.commentName?.toLowerCase() === currentUserEmail;
 
                       return (
                         <div key={c.id} className="flex gap-3 items-start">
@@ -353,7 +371,9 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                           </div>
                           <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-3 relative">
                             <div className="flex justify-between items-center">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{name}</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {name}
+                              </p>
                               <div className="flex items-center gap-2">
                                 {/* TIME AGO */}
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -361,39 +381,39 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                                 </span>
 
                                 {/* ACTION BUTTONS */}
-                                {canEditOrDelete && editingComment?.id !== c.id && (
-                                  <div className="flex items-center gap-2">
-                                    {/* EDIT */}
-                                    <button
-                                      onClick={() => handleEditComment(c)}
-                                      title="Edit"
-                                      className="px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 
-        hover:bg-blue-100 dark:hover:bg-blue-900/40 
-        hover:scale-105 active:scale-95 
-        transition-all duration-200 flex items-center gap-1"
-                                    >
-                                      <Edit size={14} />
-                                    </button>
+                                {canEditOrDelete &&
+                                  editingComment?.id !== c.id && (
+                                    <div className="flex items-center gap-2">
+                                      {/* EDIT */}
+                                      <button
+                                        onClick={() => handleEditComment(c)}
+                                        className="p-2 rounded-full bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition"
+                                      >
+                                        <Edit
+                                          size={16}
+                                          className="text-blue-600 dark:text-blue-300"
+                                        />
+                                      </button>
 
-                                    {/* DELETE */}
-                                    <button
-                                      onClick={() => handleDeleteComment(c.id)}
-                                      title="Delete"
-                                      className="px-2 py-1 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 
-        hover:bg-red-100 dark:hover:bg-red-900/40 
-        hover:scale-105 active:scale-95 
-        transition-all duration-200 flex items-center gap-1"
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
-                                  </div>
-                                )}
+                                      {/* DELETE */}
+                                      <button
+                                        onClick={() =>
+                                          handleDeleteComment(c.id)
+                                        }
+                                        className="p-2 rounded-full bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/30 transition"
+                                      >
+                                        <Trash2
+                                          size={16}
+                                          className="text-red-600 dark:text-red-300"
+                                        />
+                                      </button>
+                                    </div>
+                                  )}
                               </div>
                             </div>
 
                             {editingComment?.id === c.id ? (
                               <div className="mt-1 flex items-start gap-2">
-
                                 {/* TEXTAREA */}
                                 <textarea
                                   className="flex-1 text-sm px-2 py-1 
@@ -404,7 +424,10 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                  resize-none"
                                   value={editingComment.text}
                                   onChange={(e) =>
-                                    setEditingComment((prev) => ({ ...prev, text: e.target.value }))
+                                    setEditingComment((prev) => ({
+                                      ...prev,
+                                      text: e.target.value,
+                                    }))
                                   }
                                   rows={2}
                                   autoFocus
@@ -413,31 +436,25 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
 
                                 {/* ACTION ICONS */}
                                 <div className="flex items-center gap-1 mt-1">
-
-                                  {/* SAVE */}
                                   <button
                                     onClick={handleAddOrUpdateComment}
-                                    className="p-1.5 rounded-md text-blue-600 
-                   hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                   hover:scale-105 active:scale-95 
-                   transition-all"
-                                    title="Save"
+                                    className="flex items-center gap-1 px-2 py-1 text-xs rounded-full
+      bg-green-500/10 text-green-600 dark:text-green-400
+      hover:bg-green-500/20 transition"
                                   >
                                     <Save size={14} />
+                                    Save
                                   </button>
 
-                                  {/* CANCEL */}
                                   <button
                                     onClick={() => setEditingComment(null)}
-                                    className="p-1.5 rounded-md text-gray-500 
-                   hover:bg-gray-100 dark:hover:bg-gray-700 
-                   hover:scale-105 active:scale-95 
-                   transition-all"
-                                    title="Cancel"
+                                    className="flex items-center gap-1 px-2 py-1 text-xs rounded-full
+      bg-gray-500/10 text-gray-600 dark:text-gray-300
+      hover:bg-gray-500/20 transition"
                                   >
-                                    <X size={17} />
+                                    <X size={14} />
+                                    Cancel
                                   </button>
-
                                 </div>
                               </div>
                             ) : (
@@ -447,12 +464,17 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                             )}
 
                             {c.ticketCommentImageVO?.map((img) => (
-                              <div key={img.id} className="relative w-32 h-32 mt-2 rounded overflow-hidden">
+                              <div
+                                key={img.id}
+                                className="relative w-32 h-32 mt-2 rounded overflow-hidden"
+                              >
                                 <img
                                   src={img.commentImage}
                                   alt="comment-img"
                                   className="w-32 h-32 object-cover rounded cursor-pointer hover:opacity-80"
-                                  onClick={() => setPreviewImage(img.commentImage)}
+                                  onClick={() =>
+                                    setPreviewImage(img.commentImage)
+                                  }
                                 />
                                 <button
                                   onClick={() => {
