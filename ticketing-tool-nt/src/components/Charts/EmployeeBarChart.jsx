@@ -90,14 +90,14 @@ const EmployeeBarChart = ({ theme }) => {
     labels: employeeNames,
     datasets: [
       {
-        label: "Completed Tickets",
+        label: "Completed",
         data: completedCounts,
         backgroundColor: completedColor,
         borderRadius: 6,
         barThickness: 18,
       },
       {
-        label: "In Progress Tickets",
+        label: "In Progress",
         data: inProgressCounts,
         backgroundColor: inProgressColor,
         borderRadius: 6,
@@ -122,26 +122,31 @@ const EmployeeBarChart = ({ theme }) => {
       },
 
       tooltip: {
-        backgroundColor: tooltipBg,
-        titleColor: textColor,
-        bodyColor: textColor,
-        callbacks: {
-          title: (items) => `Employee: ${items[0].label}`,
-          label: (context) => {
-            const i = context.dataIndex;
+  backgroundColor: tooltipBg,
+  titleColor: textColor,
+  bodyColor: textColor,
 
-            const completed = completedCounts[i];
-            const inProgress = inProgressCounts[i];
-            const rate = completionRates[i]?.toFixed(1);
+  callbacks: {
+    title: (items) => `Employee: ${items[0].label}`,
 
-            return [
-              `Completed: ${completed}`,
-              `In Progress: ${inProgress}`,
-              `Completion Rate: ${rate}%`,
-            ];
-          },
-        },
-      },
+    label: (context) => {
+      const value = context.raw;
+      return `${context.dataset.label}: ${value}`;
+    },
+
+    afterBody: (items) => {
+      const i = items[0].dataIndex;
+
+      const completed = completedCounts[i];
+      const inProgress = inProgressCounts[i];
+      const rate = completionRates[i]?.toFixed(1);
+
+      return [
+        `Completion Rate: ${rate}%`,
+      ];
+    },
+  },
+}
     },
     scales: {
       x: {

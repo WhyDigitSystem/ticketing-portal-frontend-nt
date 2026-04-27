@@ -834,6 +834,7 @@ const AuthForm = () => {
                       </label>
                     </div>
                     <button
+                    hidden
                       type="button"
                       onClick={handleForgotPassword}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
@@ -865,7 +866,7 @@ const AuthForm = () => {
                 <span>Your data is securely encrypted</span>
               </div>
               <p className="mt-3 text-xs">
-                © 2025 Why Digit System Private Limited · Made with ❤️ in India
+                © 2022 Why Digit System Private Limited
               </p>
             </div>
           </div>

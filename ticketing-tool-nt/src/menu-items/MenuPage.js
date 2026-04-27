@@ -152,7 +152,7 @@ const MenuPage = () => {
               <div
                 key={item.name}
                 onClick={() => navigate(item.path)}
-                className="group cursor-pointer w-[220px]"
+                className="group cursor-pointer w-[48%] sm:w-[180px] md:w-[220px]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="

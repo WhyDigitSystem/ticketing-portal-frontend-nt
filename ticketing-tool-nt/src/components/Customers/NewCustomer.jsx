@@ -15,6 +15,7 @@ const NewCustomer = () => {
   });
 
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,13 +37,13 @@ const NewCustomer = () => {
     const { firstName, userName, email, company } = formData;
 
     if (!firstName || !userName || !email || !company) {
-      alert("Please fill all required fields.");
+      setErrorMessage("Please fill all required fields.");
       return;
     }
 
     try {
       const payload = {
-        active:true,
+        active: true,
         firstName,
         userName,
         email,
@@ -56,31 +57,80 @@ const NewCustomer = () => {
       if (res?.statusFlag === "Ok" || res?.status === true) {
         setSuccessMessage(`Customer "${firstName}" created successfully!`);
         handleClear();
-
-        setTimeout(() => {
-          setSuccessMessage("");
-          navigate("/allcustomers");
-        }, 2000);
       } else {
-        alert(
+        setErrorMessage(
           res?.paramObjectsMap?.errorMessage || "Failed to create customer"
         );
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      setErrorMessage("Something went wrong");
     }
   };
 
   return (
     <div className="px-6 py-6 animate-fadeIn">
       {/* Success Popup */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-md flex items-center gap-2 animate-fadeIn z-50">
-          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
-          <span className="font-medium text-sm">{successMessage}</span>
+      {(successMessage || errorMessage) && (() => {
+  const isSuccess = Boolean(successMessage);
+  const message = successMessage || errorMessage;
+
+  const handleClose = () => {
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    if (isSuccess) {
+      navigate("/allcustomers");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+      
+      <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-slideUp border border-gray-200 dark:border-gray-700">
+        
+        {/* Icon */}
+        <div className="flex justify-center mb-3">
+          <div
+            className={`p-2.5 rounded-full ${
+              isSuccess
+                ? "bg-green-50 dark:bg-green-500/10"
+                : "bg-red-50 dark:bg-red-500/10"
+            }`}
+          >
+            {isSuccess ? (
+              <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+            ) : (
+              <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+            )}
+          </div>
         </div>
-      )}
+
+        {/* Title */}
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+          {isSuccess ? "Success" : "Error"}
+        </h2>
+
+        {/* Message */}
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+          {message}
+        </p>
+
+        {/* Button */}
+        <button
+          onClick={handleClose}
+          className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+            isSuccess
+              ? "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-red-600 hover:bg-red-700 text-white"
+          }`}
+        >
+          {isSuccess ? "Go to Customers" : "Close"}
+        </button>
+      </div>
+    </div>
+  );
+})()}
 
       {/* Back Button */}
       <button

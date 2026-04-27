@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Save, ArrowLeft, X, PlusCircle, Check } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { useSelector } from "react-redux";
@@ -16,6 +16,7 @@ const NewTicket = () => {
 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const user = useSelector((state) => state.auth.user);
 
@@ -50,7 +51,7 @@ const NewTicket = () => {
     e.preventDefault();
 
     if (!formData.title || !formData.priority || !formData.description) {
-      alert("Fill all required fields");
+     setErrorMessage("Please fill all required fields");
       return;
     }
 
@@ -65,12 +66,14 @@ const NewTicket = () => {
         title: formData.title,
         description: formData.description,
         priority: formData.priority,
+        application: "Ticketing Portal",
+        customer: "WHY DIGIT PRIVATE LIMITED",
       };
 
       const createRes = await ticketAPI.createTicket(payload);
 
       if (!createRes) {
-        alert("Ticket creation failed");
+        setErrorMessage("Ticket creation failed");
         return;
       }
 
@@ -78,7 +81,7 @@ const NewTicket = () => {
         createRes?.paramObjectsMap?.ticketVO?.id;
 
       if (!ticketId) {
-        alert("Ticket created but ID missing");
+        setErrorMessage("Ticket created but ID missing");
         return;
       }
 
@@ -89,7 +92,7 @@ const NewTicket = () => {
         );
 
         if (!uploadRes) {
-          alert("File upload failed");
+         setErrorMessage("File upload failed");
           return;
         }
       }
@@ -97,13 +100,11 @@ const NewTicket = () => {
       setSuccessMessage(`Ticket "${formData.title}" created successfully!`);
       handleClear();
 
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 2000);
+     
 
     } catch (error) {
       console.error(error);
-      alert("Something went wrong");
+      setErrorMessage("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -113,12 +114,60 @@ const NewTicket = () => {
     <div className="px-6 py-6 animate-fadeIn">
 
       {/* Success Toast */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-md flex items-center gap-2 animate-fadeIn z-50">
-          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
-          <span className="text-sm font-medium">{successMessage}</span>
+ {(successMessage || errorMessage) && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+    
+    <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-slideUp border border-gray-200 dark:border-gray-700">
+      
+      {/* Icon */}
+      <div className="flex justify-center mb-3">
+        <div
+          className={`p-2.5 rounded-full ${
+            successMessage
+              ? "bg-green-50 dark:bg-green-500/10"
+              : "bg-red-50 dark:bg-red-500/10"
+          }`}
+        >
+          {successMessage ? (
+            <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+          ) : (
+            <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Title */}
+      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        {successMessage ? "Success" : "Error"}
+      </h2>
+
+      {/* Message */}
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+        {successMessage || errorMessage}
+      </p>
+
+      {/* Button */}
+      <button
+        onClick={() => {
+          setSuccessMessage("");
+          setErrorMessage("");
+
+          if (successMessage) {
+            navigate("/menu/ticket");
+          }
+        }}
+        className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+          successMessage
+            ? "bg-green-600 hover:bg-green-700 text-white"
+            : "bg-red-600 hover:bg-red-700 text-white"
+        }`}
+      >
+        {successMessage ? "Go to Tickets" : "Close"}
+      </button>
+    </div>
+  </div>
+)}
+
 
 
       <button

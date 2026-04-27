@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check, FileExclamationPoint } from "lucide-react";
+import { ArrowLeft, Eye, ChevronUp, ChevronDown, Check, FileExclamationPoint,X } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 import { employeeAPI } from "../../api/employeeAPI";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ const CriticalTickets = () => {
   const [employees, setEmployees] = useState([]);
   const [assigning, setAssigning] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [hoveredRow, setHoveredRow] = useState(null);
 
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -177,7 +178,7 @@ const CriticalTickets = () => {
           employees.find((e) => e.email === employeeEmail)?.name ||
           employeeEmail;
         setSuccessMessage(`Ticket ${ticketId} assigned to ${empName}`);
-        setTimeout(() => setSuccessMessage(""), 3000);
+        
       } else {
         revertAssign(ticketId);
       }
@@ -215,7 +216,6 @@ const CriticalTickets = () => {
 
       if (res.success) {
         setSuccessMessage("Status updated successfully");
-        setTimeout(() => setSuccessMessage(""), 2500);
       } else {
         setTickets(oldTickets);
       }
@@ -224,6 +224,19 @@ const CriticalTickets = () => {
       setTickets(oldTickets);
     }
   };
+
+  const formatDate = (date) => {
+  if (!date) return "-";
+
+  const d = new Date(date);
+  if (isNaN(d)) return "-";
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
 
   const getPriorityStyle = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -248,12 +261,55 @@ const CriticalTickets = () => {
     <div className="animate-fadeIn px-6 py-6">
 
       {/* Success Toast */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow flex items-center gap-2 z-50 animate-fadeIn">
-          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
-          {successMessage}
+      {(successMessage || errorMessage) && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+    
+    <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-slideUp border border-gray-200 dark:border-gray-700">
+      
+      {/* Icon */}
+      <div className="flex justify-center mb-3">
+        <div
+          className={`p-2.5 rounded-full ${
+            successMessage
+              ? "bg-green-50 dark:bg-green-500/10"
+              : "bg-red-50 dark:bg-red-500/10"
+          }`}
+        >
+          {successMessage ? (
+            <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+          ) : (
+            <FileExclamationPoint className="w-5 h-5 text-red-600 dark:text-red-400" />
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Title */}
+      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        {successMessage ? "Success" : "Error"}
+      </h2>
+
+      {/* Message */}
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+        {successMessage || errorMessage}
+      </p>
+
+      {/* Button */}
+      <button
+        onClick={() => {
+          setSuccessMessage("");
+          setErrorMessage("");
+        }}
+        className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+          successMessage
+            ? "bg-green-600 hover:bg-green-700 text-white"
+            : "bg-red-600 hover:bg-red-700 text-white"
+        }`}
+      >
+        {successMessage ? "OK" : "Close"}
+      </button>
+    </div>
+  </div>
+)}
 
       <button
         onClick={() => navigate("/menu/ticket")}
@@ -308,10 +364,10 @@ const CriticalTickets = () => {
 
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
-        <table className="min-w-full divide-y dark:divide-gray-700">
+        <table className="min-w-full text-sm divide-y dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-3 py-2 text-xs text-center">Actions</th>
+              <th className="px-2 py-2 text-xs text-left">Actions</th>
 
               {[
                 { key: "id", label: "Ticket No" },
@@ -331,7 +387,7 @@ const CriticalTickets = () => {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs text-left cursor-pointer"
+                  className="px-2 py-2 text-xs text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-1 justify-start">
                     {col.label}
@@ -370,18 +426,18 @@ const CriticalTickets = () => {
                     </button>
                   </td>
 
-                  <td className="px-3 py-2 text-left">{ticket.id}</td>
-                  <td className="px-3 py-2 text-left">{ticket.title}</td>
+                  <td className="px-2 py-2 text-left">{ticket.id}</td>
+                  <td className="px-2 py-2 text-left">{ticket.title}</td>
                   
-                  <td className="px-3 py-2 text-left">
+                  <td className="px-2 py-2 text-left">
                     {ticket.application || "-"}
                   </td>
-                  <td className="px-3 py-2 text-left">
+                  <td className="px-2 py-2 text-left">
                     {ticket.customer || "-"}
                   </td>
-                  <td className="px-3 py-2 text-left">{ticket.createdBy}</td>
+                  <td className="px-2 py-2 text-left">{ticket.createdBy}</td>
 
-                  <td className="px-3 py-2 text-left">
+                  <td className="px-2 py-2 text-left">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${getPriorityStyle(
                         ticket.priority
@@ -391,7 +447,7 @@ const CriticalTickets = () => {
                     </span>
                   </td>
 
-                  <td className="px-3 py-2 text-left">
+                  <td className="px-2 py-2 text-left">
                     <select
                       value={ticket.status}
                       onChange={(e) =>
@@ -431,15 +487,13 @@ const CriticalTickets = () => {
                     </td>
                   )}
 
-                  <td className="px-3 py-2 text-left">
-                    {ticket.docDate
-                      ? new Date(ticket.docDate).toLocaleDateString()
-                      : "-"}
+                  <td className="px-2 py-2 text-left">
+                    {formatDate(ticket.docDate)}
                   </td>
 
-                  <td className="px-3 py-2 text-left">
+                  <td className="px-2 py-2 text-left">
                     {ticket.completedOn
-                      ? new Date(ticket.completedOn).toLocaleDateString()
+                      ? formatDate(ticket.completedOn)
                       : "-"}
                   </td>
                 </tr>

@@ -57,6 +57,7 @@ const Sidebar = () => {
 
   return (
     <aside
+      id="sidebar"
   className={clsx(
     "bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col",
 
@@ -120,7 +121,7 @@ const Sidebar = () => {
 
       {sidebarOpen && (
         <div className="px-2 py-1 border-t border-gray-100 dark:border-gray-800 text-center text-xs text-gray-500">
-          Beta v1.0
+          Version 1.0 
         </div>
       )}
     </aside>

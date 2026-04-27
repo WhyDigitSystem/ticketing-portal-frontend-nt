@@ -106,7 +106,7 @@ const Dashboard = () => {
               <div
                 key={index}
                 onClick={() => navigate(item.route)}
-                className="group cursor-pointer w-[180px]"
+                className="group cursor-pointer w-[48%] sm:w-[160px] md:w-[180px]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="

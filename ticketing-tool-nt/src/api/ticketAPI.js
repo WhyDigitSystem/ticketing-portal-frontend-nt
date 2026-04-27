@@ -62,10 +62,10 @@ export const ticketAPI = {
     try {
       const payload = {
         id,
-        assignedTo: assignedToEmployee, // backend may use this as username/code
+        assignedTo: assignedToEmployee, 
         assignedToEmployee,
         email,
-        modifiedBy, // pass actual logged-in user
+        modifiedBy, 
       };
 
       const response = await apiClient.put("/api/ticket/assignTicket", payload);

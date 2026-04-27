@@ -28,6 +28,7 @@ const UpdateEmployee = () => {
   });
 
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,7 +41,7 @@ const UpdateEmployee = () => {
 
   const handleSearch = async () => {
     if (!code) {
-      alert("Enter employee code");
+      setErrorMessage("Enter employee code");
       return;
     }
 
@@ -51,7 +52,7 @@ const UpdateEmployee = () => {
       );
 
       if (!emp) {
-        alert("Employee not found");
+        setErrorMessage("Employee not found");
         return;
       }
 
@@ -73,7 +74,7 @@ const UpdateEmployee = () => {
 
       setIsLoaded(true);
     } catch (err) {
-      alert("Failed to fetch employee");
+      setErrorMessage("Failed to fetch employee");
     }
   };
 
@@ -100,7 +101,7 @@ const UpdateEmployee = () => {
     e.preventDefault();
 
     if (!employeeId) {
-      alert("No employee selected");
+      setErrorMessage("No employee selected");
       return;
     }
 
@@ -125,22 +126,79 @@ const UpdateEmployee = () => {
           navigate("/allemployees");
         }, 2000);
       } else {
-        alert(res.error || "Update failed");
+        setErrorMessage(res.error || "Update failed");
       }
     } catch (err) {
-      alert("Something went wrong");
+      setErrorMessage("Something went wrong");
     }
   };
 
   return (
     <div className="px-6 py-6 animate-fadeIn">
       {/* Success Popup */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow-md flex items-center gap-2 z-50">
-          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
-          <span className="font-medium text-sm">{successMessage}</span>
+      {/* Center Toast (Success / Error) */}
+{(successMessage || errorMessage) && (
+  (() => {
+    const isSuccess = Boolean(successMessage);
+    const message = successMessage || errorMessage;
+
+    const handleClose = () => {
+      setSuccessMessage("");
+      setErrorMessage("");
+
+      if (isSuccess) {
+        navigate("/allemployees");
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+        
+        <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-slideUp border border-gray-200 dark:border-gray-700">
+          
+          {/* Icon */}
+          <div className="flex justify-center mb-3">
+            <div
+              className={`p-2.5 rounded-full ${
+                isSuccess
+                  ? "bg-green-50 dark:bg-green-500/10"
+                  : "bg-red-50 dark:bg-red-500/10"
+              }`}
+            >
+              {isSuccess ? (
+                <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+              ) : (
+                <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+              )}
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+            {isSuccess ? "Success" : "Error"}
+          </h2>
+
+          {/* Message */}
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+            {message}
+          </p>
+
+          {/* Button */}
+          <button
+            onClick={handleClose}
+            className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+              isSuccess
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
+          >
+            {isSuccess ? "Go to Employees" : "Close"}
+          </button>
         </div>
-      )}
+      </div>
+    );
+  })()
+)}
 
       {/* Back Button */}
       <button
@@ -189,7 +247,7 @@ const UpdateEmployee = () => {
             <input
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="Enter Code"
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
             />

@@ -29,6 +29,8 @@ const Header = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const dropdownRef = useRef(null);
+  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
+  const sidebarBtnRef = useRef(null);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -37,9 +39,35 @@ const Header = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
-    }, 60000);
+    }, 1000);
+
     return () => clearInterval(interval);
   }, []);
+
+
+  useEffect(() => {
+    const handleClickOutsideSidebar = (event) => {
+      const isMobile = window.innerWidth < 768;
+      if (!isMobile) return;
+
+      const sidebar = document.getElementById("sidebar");
+
+      if (
+        sidebarOpen &&
+        sidebar &&
+        !sidebar.contains(event.target) &&
+        !sidebarBtnRef.current.contains(event.target)
+      ) {
+        dispatch(toggleSidebar());
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutsideSidebar);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideSidebar);
+    };
+  }, [sidebarOpen, dispatch]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
@@ -66,11 +94,11 @@ const Header = () => {
   };
 
   const getStatusColor = () => {
-  if (["Employee", "Customer", "Admin"].includes(user?.type)) {
-    return "bg-green-500";
-  }
-  return "bg-gray-500";
-};
+    if (["Employee", "Customer", "Admin"].includes(user?.type)) {
+      return "bg-green-500";
+    }
+    return "bg-gray-500";
+  };
 
   const getUserInitials = () => {
     if (!user?.name) return "U";
@@ -84,18 +112,18 @@ const Header = () => {
 
 
   useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setShowProfileDropdown(false);
-    }
-  };
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm">
@@ -114,6 +142,7 @@ const Header = () => {
 
             {/* Sidebar Toggle Button */}
             <button
+              ref={sidebarBtnRef}
               onClick={() => dispatch(toggleSidebar())}
               className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
               aria-label="Toggle sidebar"
@@ -126,7 +155,7 @@ const Header = () => {
           <div className="flex items-center space-x-3">
             {/* Date & Time Display */}
             <div className="hidden xl:block">
-              <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <Calendar className="h-4 w-4 text-gray-500" />
                 <div className="text-sm">
                   <span className="font-medium text-gray-900 dark:text-white">
