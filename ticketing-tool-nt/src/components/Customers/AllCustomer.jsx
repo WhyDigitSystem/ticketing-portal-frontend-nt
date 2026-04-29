@@ -152,8 +152,8 @@ const AllCustomer = () => {
       </div>
 
       {/* Table */}
-      <div className="inline-block bg-white dark:bg-gray-800 rounded-xl shadow border overflow-x-auto animate-slideUp">
-  <table className="w-max table-auto whitespace-nowrap divide-y dark:divide-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border overflow-x-auto animate-slideUp w-auto">
+        <table className="min-w-full divide-y dark:divide-gray-700">
 
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>

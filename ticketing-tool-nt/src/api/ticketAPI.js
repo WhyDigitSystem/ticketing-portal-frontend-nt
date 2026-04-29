@@ -150,16 +150,44 @@ export const ticketAPI = {
     }
   },
 
-  // Add this inside your ticketAPI object
-getCommentsByTicketId: async (ticketId) => {
+ // My Server Comments (uses sourceId)
+getMyServerComments: async (sourceId) => {
   try {
-    const response = await apiClient.get("/api/ticket/getCommentsByTicketId", {
-      params: { ticketId },
-    });
-    // API returns an array of comment objects
-    return response || [];
-  } catch (error) {
-    console.error("Error fetching comments for ticket", ticketId, error);
+    const res = await apiClient.get(
+      "/api/ticket/getAllCommentsMyServer",
+      {
+        params: { ticketId: sourceId }, // 🔥 IMPORTANT
+      }
+    );
+
+    if (res?.statusFlag === "Ok") {
+      return res.paramObjectsMap?.commentsVO || [];
+    }
+
+    return [];
+  } catch (err) {
+    console.error("Error fetching MY SERVER comments:", err);
+    return [];
+  }
+},
+
+// Customer Comments (uses actual ticketId)
+getCustomerComments: async (ticketId) => {
+  try {
+    const res = await apiClient.get(
+      "/api/ticket/getAllCommentsAnotherServer",
+      {
+        params: { ticketId }, // normal ticketId
+      }
+    );
+
+    if (res?.statusFlag === "Ok") {
+      return res.paramObjectsMap?.commentsVO || [];
+    }
+
+    return [];
+  } catch (err) {
+    console.error("Error fetching CUSTOMER comments:", err);
     return [];
   }
 },
@@ -220,24 +248,30 @@ changeTicketStatus: async ({ id, status, empCode }) => {
 },
 
 //createComment
-createComment: async ({ ticketId, comment, commentName }) => {
+createComment: async ({ ticketId, sourceId, comment, commentName }) => {
   try {
+    const finalTicketId = sourceId || ticketId; // 🔥 FORCE SOURCE ID
+
     const payload = {
-      ticketId,
-      comment,
-      commentName,
-      id: 0, // backend expects this
+      comment: String(comment || ""),
+      commentName: String(commentName || ""),
+      orgId: 1000000009,
+      ticketId: Number(finalTicketId), // ✅ ALWAYS SOURCE ID
     };
+
+    console.log("CREATE COMMENT PAYLOAD:", payload);
 
     const response = await apiClient.post(
       "/api/ticket/createComments",
       payload
     );
 
-    if (response && response.id) {
+    const commentVO = response?.paramObjectsMap?.commentVO;
+
+    if (commentVO) {
       return {
         success: true,
-        data: response,
+        data: commentVO,
       };
     }
 

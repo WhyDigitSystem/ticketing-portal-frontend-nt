@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef  } from "react";
 import { useSelector } from "react-redux";
 import { X, Download, Check, Edit, Trash2, Save } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
@@ -6,7 +6,6 @@ import { ticketAPI } from "../../api/ticketAPI";
 const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const loggedInUser = useSelector((state) => state.auth.user);
   const currentUserEmail = loggedInUser?.email?.toLowerCase() || "";
-
   const [ticketData, setTicketData] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,18 +16,51 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [refreshComments, setRefreshComments] = useState(0);
   const user = useSelector((state) => state.auth.user);
-
   const type = user?.type?.toLowerCase();
   const isCustomer = type === "customer";
 
   useEffect(() => {
-    if (isOpen && ticket?.id) {
-      loadTicketDetails();
-      fetchComments();
+  if (!isOpen || !ticket?.id) return;
+
+  loadTicketDetails();
+}, [isOpen, ticket?.id]);
+
+useEffect(() => {
+  if (!isOpen || !ticket?.id) return;
+
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+
+      const ticketId = ticket?.sourceId || ticket?.id;
+
+      const [myComments, customerComments] = await Promise.all([
+        ticketAPI.getMyServerComments(ticketId),
+        ticketAPI.getCustomerComments(ticketId),
+      ]);
+
+      const combined = [...myComments, ...customerComments];
+
+      const normalized = normalizeComments(combined);
+
+      setComments(
+        normalized.sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  }, [isOpen, ticket]);
+  };
+
+  fetchAll();
+}, [isOpen, ticket?.id, refreshComments]);
 
   const loadTicketDetails = async () => {
     try {
@@ -44,6 +76,19 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     }
   };
 
+
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    const isClickInsideMenu = event.target.closest(".comment-menu");
+    if (!isClickInsideMenu) {
+      setActiveMenu(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
   const normalizeComments = (list = []) => {
     return list.map((c) => {
       const rawTime =
@@ -56,6 +101,10 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
         createdAt: rawTime,
       };
     });
+  };
+
+  const toggleMenu = (id) => {
+    setActiveMenu((prev) => (prev === id ? null : id));
   };
 
   const parseDate = (timestamp) => {
@@ -82,27 +131,47 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
 
   const fetchComments = async () => {
     try {
-      setLoading(true);
-      const data = await ticketAPI.getCommentsByTicketId(ticket.id);
-      setComments(
-        normalizeComments(data || []).sort(
+      if (initialLoad) setLoading(true);
+
+      const ticketId = ticket?.sourceId || ticket?.id;
+
+      const [myComments, customerComments] = await Promise.all([
+        ticketAPI.getMyServerComments(ticketId),
+        ticketAPI.getCustomerComments(ticketId),
+      ]);
+
+      const combined = [...myComments, ...customerComments];
+
+      setComments((prev) => {
+        const normalized = normalizeComments(combined);
+        const existingIds = new Set(prev.map((c) => c.id));
+
+        const newOnes = normalized.filter((c) => !existingIds.has(c.id));
+
+        if (newOnes.length === 0) return prev;
+
+        return [...prev, ...newOnes].sort(
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-        ),
-      );
+        );
+      });
     } catch (err) {
       console.error(err);
-      setComments([]);
-      setErrorMessage("Failed to fetch comments");
-      setTimeout(() => setErrorMessage(""), 2500);
     } finally {
-      setLoading(false);
+      if (initialLoad) {
+        setLoading(false);
+        setInitialLoad(false);
+      }
     }
   };
 
-  const getDisplayName = (name) => {
-    if (!name) return "User";
-    if (name.includes("@")) return name.split("@")[0];
-    return name;
+  const getDisplayName = (comment) => {
+    const raw = comment?.sourceUserName || comment?.commentName || "User";
+
+    if (raw.includes("@")) {
+      return raw.split("@")[0];
+    }
+
+    return raw;
   };
 
   const handleStatusChange = async (newStatus) => {
@@ -140,7 +209,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
       try {
         const res = await ticketAPI.updateComment({
           id: editingComment.id,
-          ticketId: ticket.id,
+          ticketId: ticket.sourceId,
           comment: editingComment.text,
           commentName: loggedInUser?.email || "User",
         });
@@ -148,7 +217,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
           setSuccessMessage("Comment updated successfully");
           setTimeout(() => setSuccessMessage(""), 2500);
           setEditingComment(null);
-          fetchComments();
+          setRefreshComments((prev) => prev + 1);
         } else {
           setErrorMessage(res.message || "Failed to update comment");
           setTimeout(() => setErrorMessage(""), 2500);
@@ -162,6 +231,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
       try {
         const res = await ticketAPI.createComment({
           ticketId: ticket.id,
+          sourceId: ticket.sourceId,
           comment: newComment,
           commentName: loggedInUser?.email || "User",
         });
@@ -215,7 +285,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     try {
       const res = await ticketAPI.deleteComment(commentId);
       if (res.success) {
-        fetchComments();
+        setRefreshComments((prev) => prev + 1);
         setSuccessMessage("Comment deleted successfully");
         setTimeout(() => setSuccessMessage(""), 2500);
         setErrorMessage("");
@@ -237,18 +307,56 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn"
       onClick={onClose}
     >
-      {successMessage && (
-        <div className="absolute top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow flex items-center gap-2 animate-scaleIn">
-          <Check size={18} className="bg-white text-green-500 rounded-full" />
-          {successMessage}
+     {(successMessage || errorMessage) && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+
+    <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-scaleIn border border-gray-200 dark:border-gray-700">
+
+      {/* Icon */}
+      <div className="flex justify-center mb-3">
+        <div
+          className={`p-2.5 rounded-full ${
+            successMessage
+              ? "bg-green-50 dark:bg-green-500/10"
+              : "bg-red-50 dark:bg-red-500/10"
+          }`}
+        >
+          {successMessage ? (
+            <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+          ) : (
+            <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+          )}
         </div>
-      )}
-      {errorMessage && (
-        <div className="absolute top-4 right-4 bg-red-500 text-white px-6 py-3 rounded shadow flex items-center gap-2">
-          <X size={18} className="bg-white text-red-500 rounded-full" />
-          {errorMessage}
-        </div>
-      )}
+      </div>
+
+      {/* Title */}
+      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        {successMessage ? "Success" : "Error"}
+      </h2>
+
+      {/* Message */}
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+        {successMessage || errorMessage}
+      </p>
+
+      {/* Button */}
+      <button
+        onClick={() => {
+          setSuccessMessage("");
+          setErrorMessage("");
+        }}
+        className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+          successMessage
+            ? "bg-green-600 hover:bg-green-700 text-white"
+            : "bg-red-600 hover:bg-red-700 text-white"
+        }`}
+      >
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
 
       <div
         className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 animate-scaleIn"
@@ -359,55 +467,104 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                 ) : (
                   <div className="space-y-4">
                     {comments.map((c) => {
-                      const name = getDisplayName(c.commentName);
+                      const name = getDisplayName(c);
                       const initial = name.charAt(0).toUpperCase();
-                      const canEditOrDelete =
-                        c.commentName?.toLowerCase() === currentUserEmail;
+                      const commentOwner =
+                        c.sourceUserName?.toLowerCase() ||
+                        c.commentName?.toLowerCase();
+                      const isOwnMessage = commentOwner === currentUserEmail;
+                      const canEditOrDelete = commentOwner === currentUserEmail;
 
                       return (
-                        <div key={c.id} className="flex gap-3 items-start">
-                          <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">
-                            {initial}
-                          </div>
-                          <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-3 relative">
-                            <div className="flex justify-between items-center">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div
+                          key={c.id}
+                          className={`flex gap-3 items-start ${isOwnMessage ? "justify-end" : "justify-start"
+                            }`}
+                        >
+                          {!isOwnMessage && (
+                            <div className="w-8 h-8 rounded-full bg-blue-500 dark:bg-blue-600 text-white flex items-center justify-center text-sm">
+                              {initial}
+                            </div>
+                          )}
+
+                          <div
+                            className={`max-w-[75%] rounded-2xl px-3 py-2 relative ${isOwnMessage
+                                ? "bg-blue-500 text-white dark:bg-blue-600"
+                                : "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+                              } ${isOwnMessage ? "ml-auto" : "mr-auto"}`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <p
+                                className={`text-sm font-medium ${isOwnMessage
+                                    ? "text-white"
+                                    : "text-gray-900 dark:text-gray-100"
+                                  }`}
+                              >
                                 {name}
                               </p>
                               <div className="flex items-center gap-2">
                                 {/* TIME AGO */}
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                <span
+                                  className={`text-xs ${isOwnMessage
+                                      ? "text-blue-100"
+                                      : "text-gray-500 dark:text-gray-400"
+                                    }`}
+                                >
                                   {timeAgo(c.createdAt)}
                                 </span>
 
                                 {/* ACTION BUTTONS */}
                                 {canEditOrDelete &&
                                   editingComment?.id !== c.id && (
-                                    <div className="flex items-center gap-2">
-                                      {/* EDIT */}
-                                      <button
-                                        onClick={() => handleEditComment(c)}
-                                        className="p-2 rounded-full bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/30 transition"
-                                      >
-                                        <Edit
-                                          size={16}
-                                          className="text-blue-600 dark:text-blue-300"
-                                        />
-                                      </button>
+                                    <div className="relative comment-menu">
+  <button
+    onClick={() => toggleMenu(c.id)}
+    className={`p-1 rounded-full ${
+      isOwnMessage
+        ? "hover:bg-blue-400/30 text-white"
+        : "hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+    }`}
+  >
+    ⋮
+  </button>
 
-                                      {/* DELETE */}
-                                      <button
-                                        onClick={() =>
-                                          handleDeleteComment(c.id)
-                                        }
-                                        className="p-2 rounded-full bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500/20 dark:hover:bg-red-500/30 transition"
-                                      >
-                                        <Trash2
-                                          size={16}
-                                          className="text-red-600 dark:text-red-300"
-                                        />
-                                      </button>
-                                    </div>
+  {activeMenu === c.id && (
+    <div
+      className={`absolute top-7 ${
+        isOwnMessage ? "right-0" : "left-0"
+      } bg-white dark:bg-gray-800 
+      border border-gray-200 dark:border-gray-700 
+      rounded-lg shadow-lg z-10 min-w-[130px] overflow-hidden`}
+    >
+      {/* EDIT */}
+      <button
+        onClick={() => {
+          handleEditComment(c);
+          setActiveMenu(null);
+        }}
+        className="w-full text-left px-4 py-2 text-sm 
+        text-gray-700 dark:text-gray-200 
+        hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        Edit
+      </button>
+
+      <div className="h-px bg-gray-200 dark:bg-gray-700" />
+
+      {/* DELETE */}
+      <button
+        onClick={() => {
+          handleDeleteComment(c.id);
+          setActiveMenu(null);
+        }}
+        className="w-full text-left px-4 py-2 text-sm 
+        text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</div>
                                   )}
                               </div>
                             </div>
@@ -439,26 +596,33 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                                   <button
                                     onClick={handleAddOrUpdateComment}
                                     className="flex items-center gap-1 px-2 py-1 text-xs rounded-full
-      bg-green-500/10 text-green-600 dark:text-green-400
-      hover:bg-green-500/20 transition"
+bg-green-500 text-white
+hover:bg-green-600
+dark:bg-green-600 dark:hover:bg-green-400
+transition"
                                   >
-                                    <Save size={14} />
                                     Save
                                   </button>
 
                                   <button
                                     onClick={() => setEditingComment(null)}
                                     className="flex items-center gap-1 px-2 py-1 text-xs rounded-full
-      bg-gray-500/10 text-gray-600 dark:text-gray-300
-      hover:bg-gray-500/20 transition"
+bg-red-500 text-white
+hover:bg-red-600
+dark:bg-red-600 dark:hover:bg-red-700
+transition"
                                   >
-                                    <X size={14} />
                                     Cancel
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">
+                              <p
+                                className={`text-sm mt-1 ${isOwnMessage
+                                    ? "text-white"
+                                    : "text-gray-700 dark:text-gray-300"
+                                  }`}
+                              >
                                 {c.comment}
                               </p>
                             )}
@@ -491,6 +655,11 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
                               </div>
                             ))}
                           </div>
+                          {isOwnMessage && (
+                            <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">
+                              {initial}
+                            </div>
+                          )}
                           {previewImage && (
                             <div
                               className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 animate-fadeIn"
@@ -524,9 +693,9 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
 
               {/* ADD NEW COMMENT */}
               {!editingComment && (
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2">
+                <div className="flex justify-center items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 ">
                   <textarea
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full h-10 border border-gray-300 dark:border-gray-600 rounded p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Add a comment..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}

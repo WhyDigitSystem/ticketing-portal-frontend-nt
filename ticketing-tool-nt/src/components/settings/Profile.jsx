@@ -14,7 +14,10 @@ import { encryptPassword } from "../../utils/PasswordEnc";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
-  const [message, setMessage] = useState("");
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [profileLoading, setProfileLoading] = useState(true);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
@@ -51,7 +54,7 @@ const Profile = () => {
           status: userData?.active ? "Active" : "Inactive",
         });
       } catch {
-        setProfile(null);
+        setErrorMessage("Failed to load profile");
       } finally {
         setProfileLoading(false);
       }
@@ -60,6 +63,18 @@ const Profile = () => {
     fetchUser();
   }, [userId]);
 
+  /* ================= AUTO CLOSE MESSAGE ================= */
+  useEffect(() => {
+    if (successMessage || errorMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+        setErrorMessage("");
+      }, 2500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, errorMessage]);
+
   /* ================= PASSWORD ================= */
   const handleClear = () => {
     setPassword({ current: "", new: "", confirm: "" });
@@ -67,11 +82,11 @@ const Profile = () => {
 
   const handleSave = async () => {
     if (!password.current || !password.new || !password.confirm) {
-      return showMessage("All fields required");
+      return setErrorMessage("All fields required");
     }
 
     if (password.new !== password.confirm) {
-      return showMessage("Passwords do not match");
+      return setErrorMessage("Passwords do not match");
     }
 
     try {
@@ -89,31 +104,70 @@ const Profile = () => {
       );
 
       if (res?.data?.status) {
-        showMessage("Password updated successfully!");
+        setSuccessMessage("Password updated successfully!");
         handleClear();
       } else {
-        showMessage("Update failed");
+        setErrorMessage("Update failed");
       }
     } catch {
-      showMessage("Something went wrong");
+      setErrorMessage("Something went wrong");
     } finally {
       setPasswordLoading(false);
     }
   };
 
-  const showMessage = (msg) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(""), 2000);
-  };
-
   return (
     <div className="px-6 py-6 animate-fadeIn">
 
-      {/* Toast */}
-      {message && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded shadow flex items-center gap-2 z-50">
-          <Check className="w-5 h-5 bg-white text-green-500 rounded-full p-1" />
-          <span className="text-sm">{message}</span>
+      {/* ================= SUCCESS / ERROR MODAL ================= */}
+      {(successMessage || errorMessage) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+
+          <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-slideUp border border-gray-200 dark:border-gray-700">
+
+            {/* Icon */}
+            <div className="flex justify-center mb-3">
+              <div
+                className={`p-2.5 rounded-full ${
+                  successMessage
+                    ? "bg-green-50 dark:bg-green-500/10"
+                    : "bg-red-50 dark:bg-red-500/10"
+                }`}
+              >
+                {successMessage ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <X className="w-5 h-5 text-red-600" />
+                )}
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-base font-semibold mb-1">
+              {successMessage ? "Success" : "Error"}
+            </h2>
+
+            {/* Message */}
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {successMessage || errorMessage}
+            </p>
+
+            {/* Button */}
+            <button
+              onClick={() => {
+                setSuccessMessage("");
+                setErrorMessage("");
+              }}
+              className={`w-full py-2 rounded-lg text-sm font-medium text-white ${
+                successMessage
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+              }`}
+            >
+              Close
+            </button>
+
+          </div>
         </div>
       )}
 
@@ -185,8 +239,8 @@ const Profile = () => {
       </div>
 
       {/* CARD */}
-      <div className="flex  animate-slideUp ">
-        <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl  border p-6 space-y-4 shadow-md hover:shadow-lg">
+      <div className="flex animate-slideUp">
+        <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl border p-6 space-y-4 shadow-md hover:shadow-lg">
 
           {activeTab === "profile" && (
             <>
@@ -204,14 +258,32 @@ const Profile = () => {
 
           {activeTab === "security" && (
             <>
-              <Input label="Current Password" value={password.current}
-                onChange={(e) => setPassword({ ...password, current: e.target.value })} type="password" />
+              <Input
+                label="Current Password"
+                value={password.current}
+                onChange={(e) =>
+                  setPassword({ ...password, current: e.target.value })
+                }
+                type="password"
+              />
 
-              <Input label="New Password" value={password.new}
-                onChange={(e) => setPassword({ ...password, new: e.target.value })} type="password" />
+              <Input
+                label="New Password"
+                value={password.new}
+                onChange={(e) =>
+                  setPassword({ ...password, new: e.target.value })
+                }
+                type="password"
+              />
 
-              <Input label="Confirm Password" value={password.confirm}
-                onChange={(e) => setPassword({ ...password, confirm: e.target.value })} type="password" />
+              <Input
+                label="Confirm Password"
+                value={password.confirm}
+                onChange={(e) =>
+                  setPassword({ ...password, confirm: e.target.value })
+                }
+                type="password"
+              />
             </>
           )}
         </div>
