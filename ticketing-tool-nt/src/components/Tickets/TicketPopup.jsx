@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef  } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { X, Download, Check, Edit, Trash2, Save } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
@@ -18,49 +18,64 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const [activeMenu, setActiveMenu] = useState(null);
-  const [refreshComments, setRefreshComments] = useState(0);
   const user = useSelector((state) => state.auth.user);
   const type = user?.type?.toLowerCase();
   const isCustomer = type === "customer";
 
+
+
   useEffect(() => {
-  if (!isOpen || !ticket?.id) return;
+  if (successMessage || errorMessage) {
+    const timer = setTimeout(() => {
+      setSuccessMessage("");
+      setErrorMessage("");
+    }, 2000);
 
-  loadTicketDetails();
-}, [isOpen, ticket?.id]);
+    return () => clearTimeout(timer);
+  }
+}, [successMessage, errorMessage]);
 
-useEffect(() => {
-  if (!isOpen || !ticket?.id) return;
 
-  const fetchAll = async () => {
-    try {
-      setLoading(true);
 
-      const ticketId = ticket?.sourceId || ticket?.id;
 
-      const [myComments, customerComments] = await Promise.all([
-        ticketAPI.getMyServerComments(ticketId),
-        ticketAPI.getCustomerComments(ticketId),
-      ]);
+  useEffect(() => {
+    if (!isOpen || !ticket?.id) return;
 
-      const combined = [...myComments, ...customerComments];
+    loadTicketDetails();
+  }, [isOpen, ticket?.id]);
 
-      const normalized = normalizeComments(combined);
+  useEffect(() => {
+    if (!isOpen || !ticket?.id) return;
 
-      setComments(
-        normalized.sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchAll = async () => {
+      try {
+        setLoading(true);
 
-  fetchAll();
-}, [isOpen, ticket?.id, refreshComments]);
+        const ticketId = ticket?.sourceId || ticket?.id;
+
+        const [myComments, customerComments] = await Promise.all([
+          ticketAPI.getMyServerComments(ticketId),
+          ticketAPI.getCustomerComments(ticketId),
+        ]);
+
+        const combined = [...myComments, ...customerComments];
+
+        const normalized = normalizeComments(combined);
+
+        setComments(
+          normalized.sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+          )
+        );
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [isOpen, ticket?.id]);
 
   const loadTicketDetails = async () => {
     try {
@@ -72,22 +87,22 @@ useEffect(() => {
     } catch (err) {
       console.error("Error loading ticket details:", err);
       setErrorMessage("Failed to load ticket details");
-      setTimeout(() => setErrorMessage(""), 2500);
+    
     }
   };
 
 
   useEffect(() => {
-  const handleClickOutside = (event) => {
-    const isClickInsideMenu = event.target.closest(".comment-menu");
-    if (!isClickInsideMenu) {
-      setActiveMenu(null);
-    }
-  };
+    const handleClickOutside = (event) => {
+      const isClickInsideMenu = event.target.closest(".comment-menu");
+      if (!isClickInsideMenu) {
+        setActiveMenu(null);
+      }
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const normalizeComments = (list = []) => {
     return list.map((c) => {
@@ -187,19 +202,17 @@ useEffect(() => {
       if (res.success) {
         setStatus(res.ticket.status);
         setSuccessMessage("Status updated successfully");
-        setTimeout(() => setSuccessMessage(""), 2500);
         onUpdateTicket?.(res.ticket);
         setErrorMessage("");
       } else {
         setStatus(oldStatus);
         setErrorMessage(res.message || "Failed to update status");
-        setTimeout(() => setErrorMessage(""), 2500);
+        
       }
     } catch (err) {
       setStatus(oldStatus);
       console.error(err);
       setErrorMessage("Unexpected error while updating status");
-      setTimeout(() => setErrorMessage(""), 2500);
     }
   };
 
@@ -207,25 +220,46 @@ useEffect(() => {
     if (editingComment) {
       if (!editingComment.text.trim()) return;
       try {
-        const res = await ticketAPI.updateComment({
-          id: editingComment.id,
-          ticketId: ticket.sourceId,
-          comment: editingComment.text,
-          commentName: loggedInUser?.email || "User",
-        });
+       const res = await ticketAPI.updateComment({
+  id: editingComment.id,
+  ticketId: ticket.sourceId || ticket.id,
+
+  comment: editingComment.text,
+  commentName: loggedInUser?.email || "User",
+  sourceId: ticket.sourceId || 0,
+  sourceTicketId: ticket.sourceId || 0,
+  sourceOrgId: 0,
+  sourceUserName: loggedInUser?.email || "User",
+});
         if (res.success) {
-          setSuccessMessage("Comment updated successfully");
-          setTimeout(() => setSuccessMessage(""), 2500);
-          setEditingComment(null);
-          setRefreshComments((prev) => prev + 1);
-        } else {
+  setSuccessMessage("Comment updated successfully");
+
+ const updated = res.data;
+setComments(prev =>
+  prev.map(c =>
+    c.id === editingComment.id
+      ? { 
+          ...c,
+          comment: updated.comment,
+          createdAt:
+            updated.commentsTime ||
+            updated.commondate?.modifiedon ||
+            new Date().toISOString(),
+        }
+      : c
+  )
+);
+
+  setEditingComment(null);
+  setNewComment("");
+} else {
           setErrorMessage(res.message || "Failed to update comment");
-          setTimeout(() => setErrorMessage(""), 2500);
+          
         }
       } catch (err) {
         console.error(err);
         setErrorMessage("Unexpected error while updating comment");
-        setTimeout(() => setErrorMessage(""), 2500);
+      
       }
     } else if (newComment.trim() || image) {
       try {
@@ -256,21 +290,24 @@ useEffect(() => {
           ])[0];
 
           // instant insert (no refetch)
-          setComments((prev) => [...prev, normalized]);
+          setComments(prev =>
+            [...prev, normalized].sort(
+              (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+            )
+          );
 
-          setSuccessMessage("Comment added successfully");
-          setTimeout(() => setSuccessMessage(""), 2500);
+
 
           setNewComment("");
           setImage(null);
         } else {
           setErrorMessage("Failed to add comment");
-          setTimeout(() => setErrorMessage(""), 2500);
+          
         }
       } catch (err) {
         console.error(err);
         setErrorMessage("Unexpected error while adding comment");
-        setTimeout(() => setErrorMessage(""), 2500);
+        
       }
     }
   };
@@ -281,24 +318,25 @@ useEffect(() => {
     setSuccessMessage("");
   };
 
-  const handleDeleteComment = async (commentId) => {
-    try {
-      const res = await ticketAPI.deleteComment(commentId);
-      if (res.success) {
-        setRefreshComments((prev) => prev + 1);
-        setSuccessMessage("Comment deleted successfully");
-        setTimeout(() => setSuccessMessage(""), 2500);
-        setErrorMessage("");
-      } else {
-        setErrorMessage(res.message || "Failed to delete comment");
-        setTimeout(() => setErrorMessage(""), 2500);
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("Unexpected error while deleting comment");
-      setTimeout(() => setErrorMessage(""), 2500);
+ const handleDeleteComment = async (commentId, sourceId) => {
+  try {
+    const res = await ticketAPI.deleteComment({
+      id: commentId,
+      sourceId: sourceId,
+    });
+
+    if (res.success) {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      setSuccessMessage(res.message);
+      setErrorMessage("");
+    } else {
+      setErrorMessage(res.message || "Failed to delete comment");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setErrorMessage("Unexpected error while deleting comment");
+  }
+};
 
   if (!isOpen) return null;
 
@@ -307,56 +345,42 @@ useEffect(() => {
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn"
       onClick={onClose}
     >
-     {(successMessage || errorMessage) && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 animate-fadeIn">
+      {/* {(successMessage || errorMessage) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 
-    <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-scaleIn border border-gray-200 dark:border-gray-700">
+          <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-5 text-center animate-scaleIn border border-gray-200 dark:border-gray-700">
 
-      {/* Icon */}
-      <div className="flex justify-center mb-3">
-        <div
-          className={`p-2.5 rounded-full ${
-            successMessage
-              ? "bg-green-50 dark:bg-green-500/10"
-              : "bg-red-50 dark:bg-red-500/10"
-          }`}
-        >
-          {successMessage ? (
-            <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-          ) : (
-            <X className="w-5 h-5 text-red-600 dark:text-red-400" />
-          )}
+           
+            <div className="flex justify-center mb-3">
+              <div
+                className={`p-2.5 rounded-full ${successMessage
+                    ? "bg-green-50 dark:bg-green-500/10"
+                    : "bg-red-50 dark:bg-red-500/10"
+                  }`}
+              >
+                {successMessage ? (
+                  <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                ) : (
+                  <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                )}
+              </div>
+            </div>
+
+            
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+              {successMessage ? "Success" : "Error"}
+            </h2>
+
+            
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+              {successMessage || errorMessage}
+            </p>
+
+            
+
+          </div>
         </div>
-      </div>
-
-      {/* Title */}
-      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
-        {successMessage ? "Success" : "Error"}
-      </h2>
-
-      {/* Message */}
-      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-        {successMessage || errorMessage}
-      </p>
-
-      {/* Button */}
-      <button
-        onClick={() => {
-          setSuccessMessage("");
-          setErrorMessage("");
-        }}
-        className={`w-full py-2 rounded-lg text-sm font-medium transition ${
-          successMessage
-            ? "bg-green-600 hover:bg-green-700 text-white"
-            : "bg-red-600 hover:bg-red-700 text-white"
-        }`}
-      >
-        Close
-      </button>
-
-    </div>
-  </div>
-)}
+      )} */}
 
       <div
         className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 animate-scaleIn"
@@ -489,15 +513,15 @@ useEffect(() => {
 
                           <div
                             className={`max-w-[75%] rounded-2xl px-3 py-2 relative ${isOwnMessage
-                                ? "bg-blue-500 text-white dark:bg-blue-600"
-                                : "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+                              ? "bg-blue-500 text-white dark:bg-blue-600"
+                              : "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
                               } ${isOwnMessage ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className="flex items-center justify-between gap-2">
                               <p
                                 className={`text-sm font-medium ${isOwnMessage
-                                    ? "text-white"
-                                    : "text-gray-900 dark:text-gray-100"
+                                  ? "text-white"
+                                  : "text-gray-900 dark:text-gray-100"
                                   }`}
                               >
                                 {name}
@@ -506,8 +530,8 @@ useEffect(() => {
                                 {/* TIME AGO */}
                                 <span
                                   className={`text-xs ${isOwnMessage
-                                      ? "text-blue-100"
-                                      : "text-gray-500 dark:text-gray-400"
+                                    ? "text-blue-100"
+                                    : "text-gray-500 dark:text-gray-400"
                                     }`}
                                 >
                                   {timeAgo(c.createdAt)}
@@ -517,54 +541,52 @@ useEffect(() => {
                                 {canEditOrDelete &&
                                   editingComment?.id !== c.id && (
                                     <div className="relative comment-menu">
-  <button
-    onClick={() => toggleMenu(c.id)}
-    className={`p-1 rounded-full ${
-      isOwnMessage
-        ? "hover:bg-blue-400/30 text-white"
-        : "hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
-    }`}
-  >
-    ⋮
-  </button>
+                                      <button
+                                        onClick={() => toggleMenu(c.id)}
+                                        className={`p-1 rounded-full ${isOwnMessage
+                                            ? "hover:bg-blue-400/30 text-white"
+                                            : "hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+                                          }`}
+                                      >
+                                        ⋮
+                                      </button>
 
-  {activeMenu === c.id && (
-    <div
-      className={`absolute top-7 ${
-        isOwnMessage ? "right-0" : "left-0"
-      } bg-white dark:bg-gray-800 
+                                      {activeMenu === c.id && (
+                                        <div
+                                          className={`absolute top-7 ${isOwnMessage ? "right-0" : "left-0"
+                                            } bg-white dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700 
       rounded-lg shadow-lg z-10 min-w-[130px] overflow-hidden`}
-    >
-      {/* EDIT */}
-      <button
-        onClick={() => {
-          handleEditComment(c);
-          setActiveMenu(null);
-        }}
-        className="w-full text-left px-4 py-2 text-sm 
+                                        >
+                                          {/* EDIT */}
+                                          <button
+                                            onClick={() => {
+                                              handleEditComment(c);
+                                              setActiveMenu(null);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm 
         text-gray-700 dark:text-gray-200 
         hover:bg-gray-100 dark:hover:bg-gray-700"
-      >
-        Edit
-      </button>
+                                          >
+                                            Edit
+                                          </button>
 
-      <div className="h-px bg-gray-200 dark:bg-gray-700" />
+                                          <div className="h-px bg-gray-200 dark:bg-gray-700" />
 
-      {/* DELETE */}
-      <button
-        onClick={() => {
-          handleDeleteComment(c.id);
-          setActiveMenu(null);
-        }}
-        className="w-full text-left px-4 py-2 text-sm 
+                                          {/* DELETE */}
+                                          <button
+                                            onClick={() => {
+                                              handleDeleteComment(c.id, ticket.sourceId || ticket.id);
+                                              setActiveMenu(null);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm 
         text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-      >
-        Delete
-      </button>
-    </div>
-  )}
-</div>
+                                          >
+                                            Delete
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
                                   )}
                               </div>
                             </div>
@@ -619,8 +641,8 @@ transition"
                             ) : (
                               <p
                                 className={`text-sm mt-1 ${isOwnMessage
-                                    ? "text-white"
-                                    : "text-gray-700 dark:text-gray-300"
+                                  ? "text-white"
+                                  : "text-gray-700 dark:text-gray-300"
                                   }`}
                               >
                                 {c.comment}

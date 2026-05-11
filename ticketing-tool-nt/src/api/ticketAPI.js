@@ -288,55 +288,98 @@ createComment: async ({ ticketId, sourceId, comment, commentName }) => {
   }
 },
 // deleteComment
-deleteComment: async (commentId) => {
+deleteComment: async ({ id, sourceId }) => {
   try {
-    const response = await apiClient.delete(`/api/ticket/deleteCommentsById/${commentId}`);
-    // API returns plain text message
+    const response = await apiClient.delete(
+      "/api/ticket/deleteComments",
+      {
+        params: {
+          id: Number(id),
+          sourceId: Number(sourceId),
+        },
+      }
+    );
+
+    if (response?.status === true || response?.statusFlag === "Ok") {
+      return {
+        success: true,
+        message:
+          response?.paramObjectsMap?.message ||
+          "Comment deleted successfully",
+      };
+    }
+
     return {
-      success: true,
-      message: response || "Comment deleted successfully",
+      success: false,
+      message: "Failed to delete comment",
     };
   } catch (error) {
     console.error("Error deleting comment:", error.response?.data || error);
+
     return {
       success: false,
-      message: error.response?.data || error.message || "Error deleting comment",
+      message:
+        error.response?.data?.paramObjectsMap?.message ||
+        error.message ||
+        "Error deleting comment",
     };
   }
 },
 
 // updateComment
-updateComment: async ({ id, ticketId, commentName, comment }) => {
+updateComment: async ({
+  id,
+  ticketId,
+  commentName,
+  comment,
+  sourceId = 0,
+  sourceOrgId = 0,
+  sourceTicketId = 0,
+  sourceUserName = "",
+}) => {
   try {
     const payload = {
-      id,           // comment ID to update
-      ticketId,     // ticket this comment belongs to
-      commentName,  // user updating the comment
-      comment,      // new comment text
+      id: Number(id),
+      comment: String(comment || ""),
+      commentName: String(commentName || ""),
+      orgId: 1000000009, // ✅ REQUIRED
+      ticketId: Number(ticketId),
+
+      // ✅ REQUIRED BY BACKEND
+      sourceId,
+      sourceOrgId,
+      sourceTicketId,
+      sourceUserName,
     };
 
-    const response = await apiClient.put("/api/ticket/updateComments", payload);
+    console.log("UPDATE COMMENT PAYLOAD:", payload);
+
+    const response = await apiClient.put(
+      "/api/ticket/updateComments",
+      payload
+    );
 
     if (response?.id) {
       return {
         success: true,
         data: response,
-        message: "Comment updated successfully",
       };
     }
 
     return {
       success: false,
       message: "Failed to update comment",
-      data: response,
     };
   } catch (error) {
     console.error("Error updating comment:", error.response?.data || error);
     return {
       success: false,
-      message: error.response?.data?.message || error.message || "Error updating comment",
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Error updating comment",
     };
   }
-},
+}
 
 };
