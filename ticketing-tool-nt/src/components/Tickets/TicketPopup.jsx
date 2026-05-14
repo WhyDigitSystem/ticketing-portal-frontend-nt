@@ -17,10 +17,10 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   const [editingComment, setEditingComment] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [initialLoad, setInitialLoad] = useState(true);
-  const [activeMenu, setActiveMenu] = useState(null);
   const user = useSelector((state) => state.auth.user);
   const type = user?.type?.toLowerCase();
   const isCustomer = type === "customer";
+  const [activeMenu, setActiveMenu] = useState(null);
 
   useEffect(() => {
     if (successMessage || errorMessage) {
@@ -33,44 +33,9 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     }
   }, [successMessage, errorMessage]);
 
-  useEffect(() => {
-    if (!isOpen || !ticket?.id) return;
+  
 
-    loadTicketDetails();
-  }, [isOpen, ticket?.id]);
-
-  useEffect(() => {
-    if (!isOpen || !ticket?.id) return;
-
-    const fetchAll = async () => {
-      try {
-        setLoading(true);
-
-        const ticketId = ticket?.sourceId || ticket?.id;
-
-        const [myComments, customerComments] = await Promise.all([
-          ticketAPI.getMyServerComments(ticketId),
-          ticketAPI.getCustomerComments(ticketId),
-        ]);
-
-        const combined = [...myComments, ...customerComments];
-
-        const normalized = normalizeComments(combined);
-
-        setComments(
-          normalized.sort(
-            (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-          ),
-        );
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAll();
-  }, [isOpen, ticket?.id]);
+  
 
   const loadTicketDetails = async () => {
     try {
@@ -137,40 +102,104 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
-  const fetchComments = async () => {
-    try {
-      if (initialLoad) setLoading(true);
+const loadComments = async () => {
+  try {
+    if (initialLoad) setLoading(true);
 
-      const ticketId = ticket?.sourceId || ticket?.id;
+    const ticketId = ticket?.sourceId || ticket?.id;
 
-      const [myComments, customerComments] = await Promise.all([
-        ticketAPI.getMyServerComments(ticketId),
-        ticketAPI.getCustomerComments(ticketId),
-      ]);
+    const [myComments, customerComments] = await Promise.all([
+      ticketAPI.getMyServerComments(ticketId),
+      ticketAPI.getCustomerComments(ticketId),
+    ]);
 
-      const combined = [...myComments, ...customerComments];
+    const combined = [...myComments, ...customerComments];
 
-      setComments((prev) => {
-        const normalized = normalizeComments(combined);
-        const existingIds = new Set(prev.map((c) => c.id));
+    const normalized = normalizeComments(combined).sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+    );
 
-        const newOnes = normalized.filter((c) => !existingIds.has(c.id));
+    setComments((prev) => {
+      const prevString = JSON.stringify(prev);
+      const newString = JSON.stringify(normalized);
 
-        if (newOnes.length === 0) return prev;
-
-        return [...prev, ...newOnes].sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-        );
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (initialLoad) {
-        setLoading(false);
-        setInitialLoad(false);
+      // prevent unnecessary rerender
+      if (prevString === newString) {
+        return prev;
       }
+
+      return normalized;
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (initialLoad) {
+      setLoading(false);
+      setInitialLoad(false);
     }
-  };
+  }
+};
+
+const checkForUpdates = async () => {
+  try {
+    const latestTicket = await ticketAPI.getTicketById(ticket.id);
+
+    setTicketData((prev) => {
+      const prevString = JSON.stringify(prev);
+      const newString = JSON.stringify(latestTicket);
+
+      // no UI rerender if same
+      if (prevString === newString) {
+        return prev;
+      }
+
+      setStatus(latestTicket.status || "Inprogress");
+
+      return latestTicket;
+    });
+
+    await loadComments();
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+/* AUTO REFRESH COMMENTS + TICKET DETAILS */
+useEffect(() => {
+  if (!isOpen || !ticket?.id) return;
+
+  checkForUpdates();
+
+ const interval = setInterval(async () => {
+  try {
+    const ticketId = ticket?.sourceId || ticket?.id;
+
+    const [myComments, customerComments] = await Promise.all([
+      ticketAPI.getMyServerComments(ticketId),
+      ticketAPI.getCustomerComments(ticketId),
+    ]);
+
+    const combined = [...myComments, ...customerComments];
+
+    const normalized = normalizeComments(combined).sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+    );
+
+    // update ONLY if count changed
+    setComments((prev) => {
+      if (prev.length === normalized.length) {
+        return prev;
+      }
+
+      return normalized;
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}, 5000);
+
+  return () => clearInterval(interval);
+}, [isOpen, ticket?.id]);
 
   const getDisplayName = (comment) => {
     const raw = comment?.sourceUserName || comment?.commentName || "User";
@@ -218,7 +247,7 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
 
           comment: editingComment.text,
           commentName: loggedInUser?.email || "User",
-          sourceId: ticket.sourceId || 0,
+          sourceId: editingComment.id,
           sourceTicketId: ticket.sourceId || 0,
           sourceOrgId: 0,
           sourceUserName: loggedInUser?.email || "User",
@@ -304,11 +333,11 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
     setSuccessMessage("");
   };
 
-  const handleDeleteComment = async (commentId, sourceId) => {
+  const handleDeleteComment = async (commentId) => {
     try {
       const res = await ticketAPI.deleteComment({
         id: commentId,
-        sourceId: sourceId,
+        sourceId: commentId,
       });
 
       if (res.success) {
@@ -328,9 +357,9 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn"
-      onClick={onClose}
-    >
+  className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3"
+  onClick={onClose}
+>
       {/* {(successMessage || errorMessage) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 
@@ -368,10 +397,10 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
         </div>
       )} */}
 
-      <div
-        className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 animate-scaleIn"
-        onClick={(e) => e.stopPropagation()}
-      >
+ <div
+  className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700"
+  onClick={(e) => e.stopPropagation()}
+>
         {/* HEADER */}
         <div className="flex justify-between items-center px-5 py-3 border-b bg-gray-50 dark:bg-gray-800">
           <h2 className="font-semibold text-gray-900 dark:text-white">
@@ -745,24 +774,6 @@ const TicketPopup = ({ isOpen, onClose, ticket, onUpdateTicket }) => {
   );
 };
 
-/* Animations */
-const styles = `
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.animate-fadeIn { animation: fadeIn 0.25s ease-out; }
-.animate-scaleIn { animation: scaleIn 0.25s ease-out; }
-`;
 
-if (typeof document !== "undefined") {
-  const styleSheet = document.createElement("style");
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
-}
 
 export default TicketPopup;

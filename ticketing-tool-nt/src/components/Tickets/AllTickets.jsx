@@ -416,7 +416,7 @@ const AllTickets = () => {
                     {ticket.application || "-"}
                   </td>
                   <td className="px-2 py-2 text-left">
-                    {ticket.customer || "-"}
+                    {ticket.customer ||  "-"}
                   </td>
                   <td className="px-2 py-2 text-left">{ticket.createdBy}</td>
 

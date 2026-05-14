@@ -332,7 +332,7 @@ updateComment: async ({
   ticketId,
   commentName,
   comment,
-  sourceId = 0,
+  sourceId,
   sourceOrgId = 0,
   sourceTicketId = 0,
   sourceUserName = "",
@@ -346,7 +346,7 @@ updateComment: async ({
       ticketId: Number(ticketId),
 
       // ✅ REQUIRED BY BACKEND
-      sourceId,
+      sourceId:Number(id),
       sourceOrgId,
       sourceTicketId,
       sourceUserName,
