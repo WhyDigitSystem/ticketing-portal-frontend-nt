@@ -135,63 +135,103 @@ const AllEmployees = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
-        <table className="min-w-full divide-y dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              {[
-                { key: "id", label: "ID" },
-                { key: "name", label: "Name" },
-                { key: "code", label: "Code" },
-                { key: "department", label: "Department" },
-                { key: "designation", label: "Designation" },
-                { key: "branch", label: "Branch" },
-                { key: "email", label: "Email" },
-                { key: "doj", label: "Joining Date" },
-              ].map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs cursor-pointer"
-                >
-                  <div className="flex justify-start items-center gap-1">
-                    {col.label}
-                    {renderSortIcon(col.key)}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-  
-          <tbody className="divide-y dark:divide-gray-700">
-            {paginatedEmployees.map((emp) => (
-              <tr
-                key={emp.id}
-                onMouseEnter={() => setHoveredRow(emp.id)}
-                onMouseLeave={() => setHoveredRow(null)}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                  hoveredRow === emp.id
-                    ? "border-l-4 border-blue-500"
-                    : ""
-                }`}
-              >
-                <td className="px-3 py-2 text-left">{emp.id}</td>
-                <td className="px-3 py-2 text-left">{emp.name}</td>
-                <td className="px-3 py-2 text-left">{emp.code}</td>
-                <td className="px-3 py-2 text-left">{emp.department}</td>
-                <td className="px-3 py-2 text-left">{emp.designation}</td>
-                <td className="px-3 py-2 text-left">{emp.branch}</td>
-                <td className="px-3 py-2 text-left">{emp.email}</td>
-                <td className="px-3 py-2 text-left">
-                  {emp.doj
-                    ? new Date(emp.doj).toLocaleDateString()
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 animate-slideUp">
+  <table className="w-full table-fixed">
+
+    {/* HEADER */}
+    <thead>
+      <tr className="border-b border-gray-200/60 dark:border-white/10">
+
+        {[
+          { key: "id", label: "ID", w: "80px" },
+          { key: "name", label: "Name", w: "160px" },
+          { key: "code", label: "Code", w: "110px" },
+          { key: "department", label: "Department", w: "140px" },
+          { key: "designation", label: "Designation", w: "140px" },
+          { key: "branch", label: "Branch", w: "120px" },
+          { key: "email", label: "Email", w: "200px" },
+          { key: "doj", label: "Joining Date", w: "120px" },
+        ].map((col) => (
+          <th
+            key={col.key}
+            onClick={() => handleSort(col.key)}
+            className={`w-[${col.w}] px-2 py-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left cursor-pointer`}
+          >
+            <div className="flex items-center gap-1">
+              {col.label}
+              {renderSortIcon(col.key)}
+            </div>
+          </th>
+        ))}
+
+      </tr>
+    </thead>
+
+    {/* BODY */}
+    <tbody>
+      {paginatedEmployees.map((emp, index) => (
+        <tr
+          key={emp.id}
+          style={{ animationDelay: `${index * 40}ms` }}
+          onMouseEnter={() => setHoveredRow(emp.id)}
+          onMouseLeave={() => setHoveredRow(null)}
+          className={`
+            border-b border-gray-100/60 dark:border-white/5
+            hover:bg-gray-50 dark:hover:bg-white/[0.03]
+            transition-all duration-200 animate-fadeIn
+            ${hoveredRow === emp.id ? "border-l-4 border-blue-500" : ""}
+          `}
+        >
+
+          {/* ID */}
+          <td className="px-2 py-3 text-xs text-gray-700 dark:text-gray-300">
+            {emp.id}
+          </td>
+
+          {/* NAME */}
+          <td className="px-2 py-3 text-xs text-gray-900 dark:text-white">
+            <div className="truncate max-w-[140px]" title={emp.name}>
+              {emp.name}
+            </div>
+          </td>
+
+          {/* CODE */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+            {emp.code}
+          </td>
+
+          {/* DEPT */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+            {emp.department}
+          </td>
+
+          {/* DESIGNATION */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+            {emp.designation}
+          </td>
+
+          {/* BRANCH */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+            {emp.branch}
+          </td>
+
+          {/* EMAIL */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+            <div className="truncate max-w-[180px]" title={emp.email}>
+              {emp.email}
+            </div>
+          </td>
+
+          {/* DOJ */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+            {emp.doj ? new Date(emp.doj).toLocaleDateString() : "-"}
+          </td>
+
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
       {/*  Pagination */}
       <div className="flex justify-between items-center mt-4 animate-slideUp">

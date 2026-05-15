@@ -13,7 +13,6 @@ import UpdateEmployee from '../components/Employees/UpdateEmployee';
 import AllCustomer from '../components/Customers/AllCustomer';
 import UpdateCustomer from '../components/Customers/UpdateCustomer';
 import ProfileSettings from '../components/settings/Profile';
-import CriticalTickets from '../components/Tickets/CriticalTickets';
 import NewCustomer from '../components/Customers/NewCustomer';
 
 const Dashboard = Loadable(lazy(() => import('../pages/Dashboard')));
@@ -72,14 +71,6 @@ const MainRoutes = {
             element: (
                 <ProtectedRoute allowedRoles={["admin","customer"]}>
                     <NewTicket />
-                </ProtectedRoute>
-            )
-        },
-        {
-            path: '/criticaltickets',
-            element: (
-                <ProtectedRoute allowedRoles={["admin", "employee"]}>
-                    <CriticalTickets />
                 </ProtectedRoute>
             )
         },

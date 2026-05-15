@@ -152,67 +152,115 @@ const AllCustomer = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border overflow-x-auto animate-slideUp w-auto">
-        <table className="min-w-full divide-y dark:divide-gray-700">
+      <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 animate-slideUp">
+  <table className="w-full table-fixed">
 
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              {[
-                { key: "userId", label: "ID" },
-                { key: "firstName", label: "Name" },
-                { key: "email", label: "Email" },
-                { key: "company", label: "Company" },
-                { key: "loginStatus", label: "Login" },
-                { key: "active", label: "Active" },
-                { key: "createdon", label: "Created On" },
-              ].map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-xs cursor-pointer"
-                >
-                  <div className="flex items-center gap-1">
-                    {col.label}
-                    {renderSortIcon(col.key)}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
+    {/* HEADER */}
+    <thead>
+      <tr className="border-b border-gray-200/60 dark:border-white/10">
 
-          <tbody className="divide-y dark:divide-gray-700">
-            {paginatedCustomers.map((customer) => (
-              <tr
-                key={customer.userId}
-                onMouseEnter={() => setHoveredRow(customer.userId)}
-                onMouseLeave={() => setHoveredRow(null)}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                  hoveredRow === customer.userId
-                    ? "border-l-4 border-blue-500"
-                    : ""
-                }`}
-              >
-                <td className="px-3 py-2">{customer.userId}</td>
-                <td className="px-3 py-2">{customer.firstName}</td>
-                <td className="px-3 py-2">{customer.email}</td>
-                <td className="px-3 py-2">{customer.company}</td>
-                <td className="px-3 py-2">
-                  {customer.loginStatus ? "Online" : "Offline"}
-                </td>
-                <td className="px-3 py-2">
-                  {customer.active ? "Active" : "Inactive"}
-                </td>
-                <td className="px-3 py-2">
-                  {customer?.commonDate?.createdon
-                    ? new Date(customer.commonDate.createdon).toLocaleDateString()
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
+        {[
+          { key: "userId", label: "ID", w: "80px" },
+          { key: "firstName", label: "Name", w: "160px" },
+          { key: "email", label: "Email", w: "220px" },
+          { key: "company", label: "Company", w: "160px" },
+          { key: "loginStatus", label: "Login", w: "100px" },
+          { key: "active", label: "Active", w: "100px" },
+          { key: "createdon", label: "Created On", w: "130px" },
+        ].map((col) => (
+          <th
+            key={col.key}
+            onClick={() => handleSort(col.key)}
+            className={`w-[${col.w}] px-2 py-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left cursor-pointer`}
+          >
+            <div className="flex items-center gap-1">
+              {col.label}
+              {renderSortIcon(col.key)}
+            </div>
+          </th>
+        ))}
 
-        </table>
-      </div>
+      </tr>
+    </thead>
+
+    {/* BODY */}
+    <tbody>
+      {paginatedCustomers.map((customer, index) => (
+        <tr
+          key={customer.userId}
+          style={{ animationDelay: `${index * 40}ms` }}
+          onMouseEnter={() => setHoveredRow(customer.userId)}
+          onMouseLeave={() => setHoveredRow(null)}
+          className={`
+            border-b border-gray-100/60 dark:border-white/5
+            hover:bg-gray-50 dark:hover:bg-white/[0.03]
+            transition-all duration-200 animate-fadeIn
+            ${hoveredRow === customer.userId ? "border-l-4 border-blue-500" : ""}
+          `}
+        >
+
+          {/* ID */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+            {customer.userId}
+          </td>
+
+          {/* NAME */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-white">
+            <div className="truncate max-w-[140px]" title={customer.firstName}>
+              {customer.firstName}
+            </div>
+          </td>
+
+          {/* EMAIL */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+            <div className="truncate max-w-[200px]" title={customer.email}>
+              {customer.email}
+            </div>
+          </td>
+
+          {/* COMPANY */}
+          <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+            {customer.company || "-"}
+          </td>
+
+          {/* LOGIN STATUS */}
+          <td className="px-2 py-3 text-xs">
+            <span
+              className={`px-2 py-1 rounded-md text-[10px] font-medium ${
+                customer.loginStatus
+                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+              }`}
+            >
+              {customer.loginStatus ? "Online" : "Offline"}
+            </span>
+          </td>
+
+          {/* ACTIVE */}
+          <td className="px-2 py-3 text-xs">
+            <span
+              className={`px-2 py-1 rounded-md text-[10px] font-medium ${
+                customer.active
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                  : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+              }`}
+            >
+              {customer.active ? "Active" : "Inactive"}
+            </span>
+          </td>
+
+          {/* DATE */}
+          <td className="px-2 py-3 text-xs  text-gray-600 dark:text-gray-300">
+            {customer?.commonDate?.createdon
+              ? new Date(customer.commonDate.createdon).toLocaleDateString()
+              : "-"}
+          </td>
+
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4 animate-slideUp">

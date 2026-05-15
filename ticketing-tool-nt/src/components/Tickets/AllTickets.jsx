@@ -352,133 +352,170 @@ const AllTickets = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 overflow-x-auto animate-slideUp">
-        <table className="min-w-full text-sm divide-y dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-3 py-2 text-xs text-left">Actions</th>
-              {[
-                { key: "id", label: "Ticket No" },
-                { key: "title", label: "Title" },
+     <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow border dark:border-gray-700 animate-slideUp">
+  <table className="w-full table-fixed">
+    
+    <thead>
+      <tr className="border-b border-gray-200/60 dark:border-white/10">
+        
+        <th className="w-[70px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Action
+        </th>
 
-                { key: "projectName", label: "Application" },
-                { key: "companyName", label: "Company" },
-                { key: "User", label: "User" },
-                { key: "priority", label: "Priority" },
-                { key: "status", label: "Status" },
-                ...(role !== "employee"
-                  ? [{ key: "assignedToEmp", label: "Assign To" }]
-                  : []),
-                { key: "docDate", label: "Created Date" },
-              ].map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="px-2 py-2 text-xs text-left cursor-pointer"
-                >
-                  <div className="flex items-center gap-1 justify-start">
-                    {col.label}
-                    {renderSortIcon(col.key)}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y dark:divide-gray-700">
-            {paginatedTickets.map((ticket) => {
-              const assignedEmployee = employees.find(
-                (e) => e.email === ticket.assignedToEmp,
-              );
-              return (
-                <tr
-                  key={ticket.id}
-                  onMouseEnter={() => setHoveredRow(ticket.id)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${hoveredRow === ticket.id ? "border-l-4 border-blue-500" : ""
-                    } animate-slideUp`}
-                >
-                  <td className="px-2 py-2 text-center">
-                    <button
-                      onClick={() => {
-                        setSelectedTicket(ticket);
-                        setIsPopupOpen(true);
-                      }}
-                      className="p-2 bg-blue-50 hover:bg-blue-100 rounded-full"
-                    >
-                      <Eye size={16} className="text-blue-500" />
-                    </button>
-                  </td>
+        <th className="w-[90px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Ticket No
+        </th>
 
-                  <td className="px-2 py-2 text-left">{ticket.id}</td>
-                  <td className="px-2 py-2 text-left">{ticket.title}</td>
+        <th className="w-[200px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Title
+        </th>
 
-                  <td className="px-2 py-2 text-left">
-                    {ticket.application || "-"}
-                  </td>
-                  <td className="px-2 py-2 text-left">
-                    {ticket.customer ||  "-"}
-                  </td>
-                  <td className="px-2 py-2 text-left">{ticket.createdBy}</td>
+        <th className="w-[120px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          App
+        </th>
 
-                  <td className="px-2 py-2 text-left">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${getPriorityStyle(
-                        ticket.priority,
-                      )}`}
-                    >
-                      {ticket.priority}
-                    </span>
-                  </td>
+        <th className="w-[120px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Company
+        </th>
 
-                  <td className="px-2 py-2 text-left">
-                    <select
-                      value={ticket.status}
-                      onChange={(e) =>
-                        handleStatusChange(ticket.id, e.target.value)
-                      }
-                      disabled={role === "customer"}
-                      className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
-                    >
-                      <option value="Inprogress">Inprogress</option>
-                      <option value="Completed">Completed</option>
-                      <option value="YetToAssign">YetToAssign</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </td>
+        <th className="w-[120px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          User
+        </th>
 
-                  {role !== "employee" && (
-                    <td className="px-2 py-2 text-left">
-                      {role === "admin" ? (
-                        <select
-                          value={ticket.assignedToEmp || ""}
-                          onChange={(e) =>
-                            handleAssignChange(ticket.id, e.target.value)
-                          }
-                          disabled={assigning[ticket.id]}
-                          className="border rounded px-2 py-1 text-sm dark:bg-gray-700"
-                        >
-                          <option value="">Unassigned</option>
-                          {employees.map((emp) => (
-                            <option key={emp.id} value={emp.email}>
-                              {emp.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        assignedEmployee?.name || "Unassigned"
-                      )}
-                    </td>
-                  )}
-                  <td className="px-2 py-2 text-left">
-                    {formatDate(ticket.docDate)}
-                  </td>
-                 
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+        <th className="w-[110px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Priority
+        </th>
+
+        <th className="w-[120px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Status
+        </th>
+
+        {role !== "employee" && (
+          <th className="w-[140px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+            Assign
+          </th>
+        )}
+
+        <th className="w-[110px] pb-3 pt-3 text-[11px] font-medium text-gray-500 dark:text-gray-400 text-left px-2">
+          Date
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {paginatedTickets.map((ticket, index) => {
+        const assignedEmployee = employees.find(
+          (e) => e.email === ticket.assignedToEmp
+        );
+
+        return (
+          <tr
+            key={ticket.id}
+            style={{ animationDelay: `${index * 40}ms` }}
+            className="
+              border-b border-gray-100/60 dark:border-white/5
+              hover:bg-gray-50 dark:hover:bg-white/[0.03]
+              transition-all duration-200 animate-fadeIn
+            "
+          >
+            
+            {/* ACTION */}
+            <td className="px-2 py-3 text-left">
+              <button
+                onClick={() => {
+                  setSelectedTicket(ticket);
+                  setIsPopupOpen(true);
+                }}
+                className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-white/5 border border-blue-100 dark:border-white/10 flex items-center justify-center hover:shadow-md hover:-translate-y-0.5 transition-all"
+              >
+                <Eye className="w-3.5 h-3.5 text-blue-500" />
+              </button>
+            </td>
+
+            {/* ID */}
+            <td className="px-2 py-3 text-xs text-gray-700 dark:text-gray-300">
+              {ticket.id}
+            </td>
+
+            {/* TITLE */}
+            <td className="px-2 py-3 text-xs text-gray-900 dark:text-white">
+              <div className="truncate max-w-[180px]" title={ticket.title}>
+                {ticket.title}
+              </div>
+            </td>
+
+            {/* APP */}
+            <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+              {ticket.application || "-"}
+            </td>
+
+            {/* COMPANY */}
+            <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+              {ticket.customer || "-"}
+            </td>
+
+            {/* USER */}
+            <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300 truncate">
+              {ticket.createdBy}
+            </td>
+
+            {/* PRIORITY */}
+            <td className="px-2 py-3">
+              <span className={`px-2 py-1 rounded-md text-[10px] font-medium ${getPriorityStyle(ticket.priority)}`}>
+                {ticket.priority}
+              </span>
+            </td>
+
+            {/* STATUS */}
+            <td className="px-2 py-3">
+              <select
+                value={ticket.status}
+                onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
+                disabled={role === "customer"}
+                className="text-xs border rounded px-2 py-1 dark:bg-gray-700"
+              >
+                <option value="Inprogress">Inprogress</option>
+                <option value="Completed">Completed</option>
+                <option value="YetToAssign">YetToAssign</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </td>
+
+            {/* ASSIGN */}
+            {role !== "employee" && (
+              <td className="px-2 py-3">
+                {role === "admin" ? (
+                  <select
+                    value={ticket.assignedToEmp || ""}
+                    onChange={(e) => handleAssignChange(ticket.id, e.target.value)}
+                    disabled={assigning[ticket.id]}
+                    className="text-xs border rounded px-2 py-1 dark:bg-gray-700 max-w-[120px]"
+                  >
+                    <option value="">Unassigned</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.email}>
+                        {emp.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-xs text-gray-600 dark:text-gray-300">
+                    {assignedEmployee?.name || "Unassigned"}
+                  </span>
+                )}
+              </td>
+            )}
+
+            {/* DATE */}
+            <td className="px-2 py-3 text-xs text-gray-600 dark:text-gray-300">
+              {formatDate(ticket.docDate)}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
 
       <div className="flex justify-between items-center mt-4 animate-slideUp">
         <span className="text-sm text-gray-600 dark:text-gray-400">

@@ -1,65 +1,56 @@
-import React, { useEffect, useState, useMemo } from "react";
+
+import React, { useEffect, useState } from "react";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
+import { AlertTriangle } from "lucide-react";
 import { ticketAPI } from "../../api/ticketAPI";
 
-ChartJS.register(ArcElement, Tooltip, Legend, Title);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-const EmployeeDoughnutChart = ({ theme }) => {
+const TicketPriorityChart = () => {
   const [priorityData, setPriorityData] = useState({
-    normal: 0,
-    medium: 0,
     high: 0,
+    medium: 0,
+    normal: 0,
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       try {
         const data = await ticketAPI.getTicketPriorityStatusCount();
 
         setPriorityData({
-          normal: data?.normal ?? 0,
-          medium: data?.medium ?? 0,
-          high: data?.high ?? 0,
+          high: data?.high || 0,
+          medium: data?.medium || 0,
+          normal: data?.normal || 0,
         });
-      } catch (error) {
-        console.error("Error loading doughnut data:", error);
+      } catch (e) {
+        console.log(e);
       }
     };
 
-    fetchData();
+    loadData();
   }, []);
 
-  const bgColors = useMemo(
-  () =>
-    theme === "dark"
-      ? ["#3b82f6","#7dd3fc","#a78bfa"]
-      : ["#93c5fd", "#bae6fd", "#c4b5fd"],
-  [theme]
-);
-
-  const borderColor =
-    theme === "dark"
-      ? ["#111827", "#111827", "#111827"]
-      : ["#fff", "#fff", "#fff"];
-
-  const textColor = theme === "dark" ? "#e5e7eb" : "#1f2937";
-  const tooltipBg = theme === "dark" ? "#374151" : "#f9fafb";
-
   const total =
-    priorityData.normal + priorityData.medium + priorityData.high;
+    priorityData.high + priorityData.medium + priorityData.normal;
+
+  const percentages = {
+    high: ((priorityData.high / total) * 100 || 0).toFixed(0),
+    medium: ((priorityData.medium / total) * 100 || 0).toFixed(0),
+    normal: ((priorityData.normal / total) * 100 || 0).toFixed(0),
+  };
 
   const data = {
-    labels: ["Normal", "Medium", "High"],
+    labels: ["High", "Medium", "Normal"],
     datasets: [
       {
-        label: "Tickets by Priority",
-        data: [priorityData.normal, priorityData.medium, priorityData.high],
-        backgroundColor: bgColors,
-        borderColor,
-        borderWidth: 2,
-        hoverOffset: 12,
-        cutout: "65%",
+        data: [priorityData.high, priorityData.medium, priorityData.normal],
+        backgroundColor: ["#ef4444", "#2563eb", "#10b981"],
+        borderWidth: 0,
+        cutout: "72%",
+        spacing: 2,
+        hoverOffset: 6,
       },
     ],
   };
@@ -67,58 +58,98 @@ const EmployeeDoughnutChart = ({ theme }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-
     plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          color: textColor,
-          padding: 15,
-          boxWidth: 12,
-        },
-      },
-
+      legend: { display: false },
       tooltip: {
-        backgroundColor: tooltipBg,
-        titleColor: textColor,
-        bodyColor: textColor,
+        backgroundColor: "#111827",
+        titleColor: "#fff",
+        bodyColor: "#cbd5e1",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.1)",
       },
     },
   };
 
   return (
-    <div className="relative h-[300px] w-full">
-      <Doughnut data={data} options={options} />
+    <div>
 
-      {/* Center Text */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <div
-          style={{
-            fontSize: "26px",
-            fontWeight: "700",
-            color: textColor,
-            lineHeight: "1",
-          }}
-        >
-          {total}
+      {/* MAIN CONTENT */}
+      <div className="flex items-center gap-20">
+        {/* CHART */}
+        <div className="relative w-[220px] h-[180px]">
+          <Doughnut data={data} options={options} />
+
+          {/* CENTER VALUE */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-none">
+              {total}
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Total Tickets
+            </p>
+          </div>
         </div>
 
-        <div
-          style={{
-            fontSize: "12px",
-            opacity: 0.7,
-            marginTop: "4px",
-            color: textColor,
-          }}
-        >
-          Total Tickets
+        {/* LEGEND */}
+        <div className="flex-1 space-y-2">
+
+          {/* HIGH */}
+          <div className="flex items-center justify-between min-h-[40px]">
+
+            {/* LEFT SIDE */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
+
+              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                High Priority - {percentages.high}%
+              </span>
+            </div>
+
+          </div>
+
+          {/* MEDIUM */}
+          <div className="flex items-center justify-between min-h-[40px]">
+
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+
+              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                Medium Priority - {percentages.high}%
+              </span>
+            </div>
+
+          </div>
+
+          {/* NORMAL */}
+          <div className="flex items-center justify-between min-h-[40px]">
+
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+
+              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                Normal Priority - {percentages.high}%
+              </span>
+            </div>
+
+
+
+          </div>
+
         </div>
-      </div>  
+      </div>
+
+      {/* ALERT */}
+      <div className="mt-5 flex justify-center">
+        
+          <AlertTriangle size={15} className="text-red-500" />
+
+          <p className=" pl-2 text-xs text-red-500 font-medium">
+             High priority tickets need immediate attention
+          </p>
+        
+      </div>
     </div>
-  );  
-
-
-  
+  );
 };
 
-export default EmployeeDoughnutChart;
+export default TicketPriorityChart;
